@@ -839,27 +839,78 @@ function showMeth(id){
   });
 })();
 
-var AI_CTX='Kamu adalah asisten penelitian yang ahli dalam metodologi ekonomi regional dan migrasi. Penelitian ini berjudul "Bukan yang Termiskin yang Merantau: Bukti Empiris Mobilitas Tenaga Kerja dan Ketimpangan Spasial di 38 Kab/Kota Jawa Timur" (EJAVEC Bank Indonesia 2025). Tim: Dr. Nanang Widaryoko, S.ST, M.Si; Tita Rosy, S.ST, M.E; Miyan Andi Irawan, S.ST, M.S.E. Temuan utama: MPI v2 \u03c1=\u22120,616***, Williamson Vw=0,99, Moran\'s I=0,327***, SEM \u03b2_growth=56916 (p=0,017**), Paradoks Madura (4 kab termiskin intensitas PMI terendah). Jawab dalam Bahasa Indonesia, singkat dan substantif 3-6 kalimat.';
+var AI_CTX='Kamu adalah asisten penelitian yang ahli dalam metodologi ekonomi regional dan migrasi. Penelitian ini berjudul "Bukan yang Termiskin yang Merantau: Bukti Empiris Mobilitas Tenaga Kerja dan Ketimpangan Spasial di 38 Kab/Kota Jawa Timur" (EJAVEC Bank Indonesia 2025). Tim: Dr. Nanang Widaryoko, S.ST, M.Si; Tita Rosy, S.ST, M.E; Miyan Andi Irawan, S.ST, M.S.E. Temuan utama: MPI v2 \u03c1=\u22120,616***, Williamson Vw=0,99, Moran\'s I=0,327***, SEM \u03b2_growth=56916 (p=0,017**), Paradoks Madura (4 kab termiskin intensitas PMI terendah). Jawab dalam Bahasa Indonesia yang jelas dan substantif, 3-6 kalimat, sertakan angka spesifik dari penelitian.';
+var _apiKey='';
+
+function setKey(){
+  var inp=document.getElementById('apiKeyIn');
+  var sts=document.getElementById('keyStatus');
+  if(!inp) return;
+  var k=inp.value.trim();
+  if(!k.startsWith('sk-ant')){
+    if(sts){sts.style.color='#e74c3c';sts.textContent='\u274C Format key salah. Harus diawali sk-ant-...';}
+    return;
+  }
+  _apiKey=k;
+  inp.value='sk-ant-...'+k.slice(-6);
+  if(sts){sts.style.color='#27ae60';sts.textContent='\u2705 API Key tersimpan untuk sesi ini. Silakan mulai bertanya!';}
+  var out=document.getElementById('aiOut');
+  if(out){out.style.color='#555';out.style.fontStyle='normal';out.textContent='Siap! Pilih kartu metode atau ketik pertanyaan Anda.';}
+}
 
 function askAI(){
   var q=(document.getElementById('aiQ')||{value:''}).value.trim();
-  if(!q) return;
-  var btn=document.getElementById('aiBtn');
   var out=document.getElementById('aiOut');
-  if(btn){btn.disabled=true;btn.textContent='Berpikir...';}
-  if(out){out.style.color='#1a1a2e';out.style.fontStyle='normal';out.textContent='Claude sedang menganalisis...';}
+  var btn=document.getElementById('aiBtn');
+  if(!q){if(out)out.textContent='Ketik pertanyaan dulu ya.';return;}
+  if(!_apiKey){
+    if(out){out.style.color='#e74c3c';out.style.fontStyle='normal';out.textContent='\u26A0\uFE0F Masukkan API key Anthropic dulu di kotak di atas.';}
+    return;
+  }
+  if(btn){btn.disabled=true;btn.textContent='Sedang berpikir...';}
+  if(out){out.style.color='#1a1a2e';out.style.fontStyle='italic';out.textContent='Claude sedang menganalisis pertanyaan Anda...';}
   fetch('https://api.anthropic.com/v1/messages',{
     method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,system:AI_CTX,messages:[{role:'user',content:q}]})
-  }).then(function(r){return r.json();}).then(function(data){
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':_apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-sonnet-4-6',
+      max_tokens:700,
+      system:AI_CTX,
+      messages:[{role:'user',content:q}]
+    })
+  })
+  .then(function(r){
+    if(!r.ok) return r.json().then(function(e){throw new Error(e.error&&e.error.message||'HTTP '+r.status);});
+    return r.json();
+  })
+  .then(function(data){
     if(out){
-      if(data.content&&data.content[0]) out.textContent=data.content[0].text;
-      else out.textContent='Tidak ada respons. Coba lagi.';
+      out.style.fontStyle='normal';
+      if(data.content&&data.content[0]&&data.content[0].text){
+        out.textContent=data.content[0].text;
+      } else {
+        out.textContent='Tidak mendapat respons. Coba lagi.';
+      }
     }
-  }).catch(function(e){
-    if(out) out.textContent='Catatan: Fitur AI memerlukan server lokal atau deployment (tidak bisa dari file:// langsung). Error: '+e.message;
-  }).finally(function(){
+  })
+  .catch(function(e){
+    if(out){
+      out.style.color='#e74c3c';out.style.fontStyle='normal';
+      if(e.message.indexOf('401')>=0||e.message.indexOf('invalid')>=0){
+        out.textContent='\u274C API key salah atau sudah expired. Periksa kembali key Anda di console.anthropic.com';
+      } else if(e.message.indexOf('Failed to fetch')>=0||e.message.indexOf('NetworkError')>=0){
+        out.textContent='\u274C Tidak bisa konek ke API. Pastikan internet aktif dan coba lagi.';
+      } else {
+        out.textContent='\u274C Error: '+e.message;
+      }
+    }
+  })
+  .finally(function(){
     if(btn){btn.disabled=false;btn.textContent='\u{1F916} Tanya';}
   });
 }
