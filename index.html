@@ -260,12 +260,25 @@ footer{text-align:center;padding:20px;font-size:10px;color:#aaa;margin-top:16px}
   <div id="methDetail"></div>
   <div class="ai-box">
     <h3>&#129302; Tanya Claude AI tentang Metodologi Penelitian</h3>
+    <div style="background:#fff;border:1px solid #bfdbfe;border-radius:8px;padding:10px 12px;margin-bottom:10px">
+      <div style="font-size:11px;color:#1e40af;font-weight:700;margin-bottom:6px">&#128273; Langkah 1: Masukkan API Key Anthropic</div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="password" class="ai-in" id="apiKeyIn" placeholder="Paste API key di sini: sk-ant-api03-..." style="font-size:11px;font-family:monospace">
+        <button class="ai-btn" onclick="setKey()" style="white-space:nowrap;background:#1e40af;padding:8px 12px">&#10003; Set</button>
+      </div>
+      <div style="font-size:10px;color:#64748b;margin-top:5px">
+        Dapatkan key gratis di <a href="https://console.anthropic.com" target="_blank" style="color:#2980b9;font-weight:600">console.anthropic.com</a>
+        &nbsp;&middot;&nbsp; Key hanya tersimpan di browser, tidak dikirim ke server lain
+      </div>
+      <div id="keyStatus" style="font-size:11px;margin-top:5px;color:#94a3b8">&#9711; Belum ada key &mdash; isi kotak di atas lalu klik Set</div>
+    </div>
+    <div style="font-size:11px;color:#1e40af;font-weight:700;margin-bottom:6px">&#129302; Langkah 2: Pilih topik atau ketik pertanyaan</div>
     <div class="chips" id="aiChips"></div>
     <div class="ai-row">
-      <input type="text" class="ai-in" id="aiQ" placeholder="Contoh: Mengapa SEM dipilih? Bagaimana interpretasi LISA? Apa perbedaan Williamson vs Theil?" onkeydown="if(event.key==='Enter')askAI()">
+      <input type="text" class="ai-in" id="aiQ" placeholder="Contoh: Mengapa SEM dipilih? Bagaimana interpretasi LISA? Apa Paradoks Madura?" onkeydown="if(event.key==='Enter')askAI()">
       <button class="ai-btn" id="aiBtn" onclick="askAI()">&#129302; Tanya</button>
     </div>
-    <div class="ai-out" id="aiOut" style="color:#94a3b8;font-style:italic">Pilih kartu metode atau ketik pertanyaan di atas untuk mulai...</div>
+    <div class="ai-out" id="aiOut" style="color:#94a3b8;font-style:italic">Masukkan API key dulu (Langkah 1), lalu pilih topik atau ketik pertanyaan...</div>
   </div>
 </div>
 <footer>Dashboard MPI Jawa Timur 2025 &middot; Dr. Nanang Widaryoko, S.ST, M.Si &middot; Tita Rosy, S.ST, M.E &middot; Miyan Andi Irawan, S.ST, M.S.E &middot; EJAVEC Bank Indonesia 2025 &middot; Data: BP2MI, BPS SP2020, Meta HDX, LinkedIn</footer>
