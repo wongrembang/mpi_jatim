@@ -1,5 +1,4 @@
 # Migration Proxy Index (MPI) Jawa Timur
-## EJAVEC Bank Indonesia 2025
 
 > **"Bukan yang Termiskin yang Merantau: Bukti Empiris Mobilitas Tenaga Kerja dan Ketimpangan Spasial di 38 Kabupaten/Kota Jawa Timur"**
 
@@ -9,7 +8,6 @@
 - Miyan Andi Irawan, S.ST, M.S.E
 
 **Instansi:** BPS Kabupaten Rembang  
-**Kompetisi:** EJAVEC (Economic Research Competition) Bank Indonesia 2025  
 **Topik:** Dinamika Mobilitas Tenaga Kerja dan Ketimpangan Spasial
 
 ---
