@@ -6,8 +6,7 @@
 - Dr. Nanang Widaryoko, S.ST, M.Si
 - Tita Rosy, S.ST, M.E
 - Miyan Andi Irawan, S.ST, M.S.E
-
-**Instansi:** BPS Kabupaten Rembang  
+ 
 **Topik:** Dinamika Mobilitas Tenaga Kerja dan Ketimpangan Spasial
 
 ---
