@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Dashboard MPI Jawa Timur 2025 — EJAVEC Bank Indonesia</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Segoe UI",Arial,sans-serif;background:#f0f2f5;color:#1a1a2e}
+.topbar{background:#1a1a2e;color:#fff;padding:12px 24px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:9999;box-shadow:0 2px 10px rgba(0,0,0,.3)}
+.topbar h1{font-size:14px;font-weight:700;line-height:1.3}
+.topbar p{font-size:10px;opacity:.65;margin-top:2px}
+.badge-ev{background:#c0392b;color:#fff;font-size:10px;padding:3px 9px;border-radius:4px;white-space:nowrap;font-weight:700;flex-shrink:0}
+.nav{background:#fff;border-bottom:1px solid #e0e0e0;padding:0 16px;display:flex;gap:2px;overflow-x:auto;position:sticky;top:52px;z-index:9998;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nb{padding:10px 14px;font-size:12px;font-weight:600;color:#888;border:none;background:transparent;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;transition:.1s}
+.nb:hover{color:#1a1a2e;background:#f8f9fa}
+.nb.on{color:#c0392b;border-bottom-color:#c0392b}
+.pg{display:none;padding:20px;max-width:1400px;margin:0 auto}
+.pg.on{display:block}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin-bottom:18px}
+.card{background:#fff;border-radius:10px;padding:12px 14px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.card.ac{border-left:3px solid #c0392b}
+.card .lbl{font-size:9px;color:#7f8c8d;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px}
+.card .val{font-size:20px;font-weight:700;color:#1a1a2e;line-height:1}
+.card .sub{font-size:9px;color:#7f8c8d;margin-top:2px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+.pnl{background:#fff;border-radius:10px;padding:16px;box-shadow:0 1px 4px rgba(0,0,0,.07);margin-bottom:14px}
+.pnl h2{font-size:13px;font-weight:700;color:#1a1a2e;margin-bottom:2px}
+.ps{font-size:11px;color:#7f8c8d;margin-bottom:10px;line-height:1.4}
+#map{height:430px;border-radius:8px;z-index:1}
+.tw{overflow-x:auto;max-height:420px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:11px}
+thead th{position:sticky;top:0;background:#f8f9fa;font-weight:600;font-size:10px;color:#7f8c8d;padding:7px 8px;text-align:left;border-bottom:1px solid #e8ecef;cursor:pointer;white-space:nowrap;user-select:none}
+thead th:hover{background:#eef2f7;color:#1a1a2e}
+tbody td{padding:5px 8px;border-bottom:1px solid #f0f2f5;white-space:nowrap}
+tbody tr:hover td{background:#f8f9fa}
+.bdt{display:inline-block;font-size:9px;padding:2px 5px;border-radius:3px;font-weight:700}
+.b-HH{background:#fde8e8;color:#a32d2d}.b-LL{background:#e6f0fb;color:#185fa5}
+.b-LH{background:#fef9e7;color:#7d6608}.b-HL{background:#eafaf1;color:#1e8449}
+.b-I{background:#e8f4fd;color:#1a5276}.b-II{background:#e9f7ef;color:#1e8449}
+.b-III{background:#fef9e7;color:#7d6608}.b-IV{background:#fef0f0;color:#a93226}
+.b-G{background:#1a1a2e;color:#fff}.b-M{background:#f39c12;color:#fff}.b-L{background:#95a5a6;color:#fff}
+.dp{color:#27ae60;font-weight:700}.dn{color:#e74c3c;font-weight:700}
+.bw{display:flex;align-items:center;gap:4px}
+.bg{width:50px;height:4px;background:#eee;border-radius:2px;overflow:hidden}
+.bf{height:100%;background:#2980b9;border-radius:2px}
+.sr{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.si{flex:1;min-width:130px;padding:6px 10px;font-size:12px;border:1px solid #ddd;border-radius:6px}
+.fs{padding:6px 10px;font-size:12px;border:1px solid #ddd;border-radius:6px;background:#fff}
+.ins{background:#eef6ff;border-left:3px solid #2980b9;border-radius:0 6px 6px 0;padding:8px 12px;font-size:11px;color:#2c3e50;line-height:1.5;margin-bottom:10px}
+.ins.gr{background:#eafaf1;border-left-color:#27ae60}
+.ins.rd{background:#fef0f0;border-left-color:#c0392b}
+.ins.or{background:#fef9e7;border-left-color:#e67e22}
+.leg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;font-size:11px;color:#555}
+.ld{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
+.stl{font-size:12px;font-weight:700;color:#1a1a2e;margin:16px 0 10px;padding-left:8px;border-left:3px solid #c0392b}
+footer{text-align:center;padding:20px;font-size:10px;color:#aaa;margin-top:16px}
+.mlb{background:#fff;padding:8px 12px;border-radius:8px;box-shadow:0 1px 6px rgba(0,0,0,.15);font-size:11px;line-height:1.8}
+.mld{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:12px;margin-bottom:14px}
+.mc{background:#fff;border-radius:10px;padding:14px;box-shadow:0 1px 4px rgba(0,0,0,.07);cursor:pointer;border:2px solid transparent;transition:.15s}
+.mc:hover{border-color:#2980b9;transform:translateY(-1px)}
+.mc.on{border-color:#c0392b}
+.mc-ico{font-size:22px;margin-bottom:6px}
+.mc h3{font-size:12px;font-weight:700;color:#1a1a2e;margin-bottom:4px}
+.mc .ms{font-size:10px;color:#555;line-height:1.4}
+.mtag{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:700;margin-bottom:4px}
+.fml{background:#1a1a2e;color:#7dd3fc;border-radius:8px;padding:12px 16px;font-family:monospace;font-size:11px;margin:10px 0;line-height:1.7;white-space:pre-wrap;overflow-x:auto}
+.pc{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.pros{background:#eafaf1;border-radius:6px;padding:10px;font-size:11px;color:#1e8449}
+.cons{background:#fef0f0;border-radius:6px;padding:10px;font-size:11px;color:#a93226}
+.pros h4,.cons h4{font-weight:700;margin-bottom:4px;font-size:11px}
+.sl{list-style:none;padding:0;margin:8px 0}
+.sl li{display:flex;gap:8px;margin-bottom:8px;font-size:11px;line-height:1.5}
+.sn{background:#c0392b;color:#fff;width:20px;height:20px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px}
+.ai-box{background:#f0f7ff;border:1px solid #bfdbfe;border-radius:10px;padding:14px;margin-top:14px}
+.ai-box h3{font-size:12px;font-weight:700;color:#1e40af;margin-bottom:8px}
+.ai-row{display:flex;gap:8px;margin-bottom:10px}
+.ai-in{flex:1;padding:8px 12px;font-size:12px;border:1px solid #bfdbfe;border-radius:6px;background:#fff}
+.ai-btn{padding:8px 14px;background:#2980b9;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap}
+.ai-btn:hover{background:#1a5276}
+.ai-btn:disabled{background:#94a3b8;cursor:not-allowed}
+.ai-out{background:#fff;border-radius:6px;padding:12px;font-size:12px;color:#1a1a2e;line-height:1.7;min-height:60px;border:1px solid #e2e8f0;max-height:280px;overflow-y:auto}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.chip{padding:4px 10px;background:#e0f2fe;color:#0369a1;font-size:10px;border-radius:20px;cursor:pointer;border:1px solid #bae6fd}
+.chip:hover{background:#bae6fd}
+.rf{background:#f8f9fa;border-radius:6px;padding:8px 10px;margin-top:8px;font-size:10px;color:#555}
+
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div style="flex:1">
+    <h1>Bukan yang Termiskin yang Merantau — Dashboard MPI Jawa Timur 2025</h1>
+    <p>Mobilitas Tenaga Kerja &amp; Ketimpangan Spasial · 38 Kab/Kota · Dr. Nanang Widaryoko, S.ST, M.Si · Tita Rosy, S.ST, M.E · Miyan Andi Irawan, S.ST, M.S.E</p>
+  </div>
+  <span class="badge-ev">EJAVEC 2025</span>
+</div>
+<nav class="nav">
+  <button class="nb on" onclick="showPage('beranda',this)">&#127968; Beranda</button>
+  <button class="nb" onclick="showPage('peta',this)">&#128205; Peta Spasial</button>
+  <button class="nb" onclick="showPage('mpi',this)">&#128200; Ranking MPI</button>
+  <button class="nb" onclick="showPage('ketimpangan',this)">&#9878; Ketimpangan</button>
+  <button class="nb" onclick="showPage('klassen',this)">&#9783; Tipologi Klassen</button>
+  <button class="nb" onclick="showPage('regresi',this)">&#128202; Regresi Spasial</button>
+  <button class="nb" onclick="showPage('tren',this)">&#128198; Tren BP2MI</button>
+  <button class="nb" onclick="showPage('compare',this)">&#9878; Bandingkan</button>
+  <button class="nb" onclick="showPage('metode',this)">&#128218; Metodologi</button>
+</nav>
+<div id="pg-beranda" class="pg on">
+  <div class="cards" id="statCards"></div>
+  <div class="g2">
+    <div class="pnl"><h2>Temuan Utama</h2><p class="ps">Bukti empiris 38 kab/kota Jawa Timur</p>
+      <div class="ins"><b>&#10071; Bukan yang termiskin yang merantau</b><br>Kemiskinan tidak berkorelasi dengan intensitas PMI (&rho;=+0,037 n.s.). Pertumbuhan PDRB adalah determinan signifikan (&beta;=56.916, p=0,017**).</div>
+      <div class="ins gr"><b>&#128205; Kluster spasial terkonfirmasi</b><br>Moran's I=0,327*** &mdash; Gerbangkertosusila = kluster penerima (HH). Koridor Mataraman = kluster pengirim (LL).</div>
+      <div class="ins or"><b>&#9888; Paradoks Madura terkonfirmasi GWR</b><br>4 kab termiskin (&gt;14%) punya intensitas PMI terendah. &beta;<sub>tpt</sub> negatif di Sampang &amp; Bangkalan.</div>
+      <div class="ins rd"><b>&#127760; Ketimpangan ekstrem (Vw=0,99) tidak dorong migrasi</b><br>Williamson Index tidak berkorelasi dengan BP2MI rate (&rho;=&minus;0,05 n.s.). CV PDRB naik 1,56&rarr;1,63: sigma-divergen.</div>
+    </div>
+    <div class="pnl"><h2>Validasi MPI: Digital vs Resmi</h2><p class="ps">Korelasi Spearman vs SP2020 &mdash; MPI v2 jauh lebih valid secara empiris</p>
+      <div style="position:relative;height:300px"><canvas id="validChart"></canvas></div>
+      <div class="ins" style="margin-top:8px"><b>MPI v1</b> (berbasis Meta/MMI): &rho;=&minus;0,065, <b>tidak signifikan</b>. &nbsp;<b>MPI v2</b> (BP2MI per kapita): &rho;=&minus;0,616, <b>p&lt;0,001***</b>. Data digital tidak cukup tanpa backbone data administratif resmi.</div>
+    </div>
+  </div>
+  <div class="g3">
+    <div class="pnl" style="text-align:center"><div style="font-size:26px;font-weight:700;color:#c0392b">Vw = 0,99</div><div style="font-size:11px;color:#888;margin-top:4px">Williamson Index</div><div style="font-size:11px;color:#c0392b;margin-top:3px">Ekstrem; outlier Kota Kediri Rp532jt</div></div>
+    <div class="pnl" style="text-align:center"><div style="font-size:26px;font-weight:700;color:#c0392b">I = 0,327</div><div style="font-size:11px;color:#888;margin-top:4px">Moran's I (p=0,001***)</div><div style="font-size:11px;color:#c0392b;margin-top:3px">Kluster spasial kuat</div></div>
+    <div class="pnl" style="text-align:center"><div style="font-size:26px;font-weight:700;color:#c0392b">ρ = −0,616</div><div style="font-size:11px;color:#888;margin-top:4px">MPI v2 vs SP2020</div><div style="font-size:11px;color:#c0392b;margin-top:3px">Valid *** p&lt;0,001</div></div>
+  </div>
+</div>
+<div id="pg-peta" class="pg">
+  <div class="g2">
+    <div class="pnl"><h2>Peta LISA Cluster (Net Migrasi SP2020)</h2>
+      <p class="ps">Ukuran = |Neto Migrasi LP| &middot; Warna = Kluster LISA &middot; Klik lingkaran untuk detail kab/kota</p>
+      <div class="leg" id="mapLeg"></div><div id="map"></div>
+    </div>
+    <div class="pnl"><h2>Global Moran's I &mdash; Semua Variabel</h2>
+      <p class="ps">999 permutasi Monte Carlo, KNN-5. Biru = signifikan (p&lt;0,05). PDRB/kap satu-satunya yang tidak berkluster.</p>
+      <div style="position:relative;height:260px"><canvas id="moranBar"></canvas></div>
+      <div class="ins" style="margin-top:10px"><b>Anomali unik:</b> PDRB per kapita tidak berkluster spasial (I=&minus;0,049, p=0,401) &mdash; akibat distorsi outlier struktural Kota Kediri (Rp532jt/kap, HQ Gudang Garam).</div>
+    </div>
+  </div>
+</div>
+<div id="pg-mpi" class="pg">
+  <div class="pnl"><h2>Dumbbell Chart: Pergeseran Ranking MPI v1 &rarr; v2</h2>
+    <p class="ps">Merah = naik di v2 | Biru = turun di v2 | Rata-rata pergeseran = 14,7 posisi | Hover untuk detail</p>
+    <div style="position:relative;height:520px"><canvas id="dumbbell"></canvas></div>
+  </div>
+  <div class="pnl">
+    <div class="sr">
+      <input type="text" class="si" placeholder="&#128269; Cari kabupaten/kota..." id="tSI" oninput="rTbl()">
+      <select class="fs" id="tFR" onchange="rTbl()"><option value="">Semua Region</option><option>Gerbangkertosusila</option><option>Mataraman/Lainnya</option><option>Madura</option></select>
+      <select class="fs" id="tFL" onchange="rTbl()"><option value="">Semua LISA</option><option>HH</option><option>LL</option><option>LH</option><option>HL</option></select>
+      <select class="fs" id="tFK" onchange="rTbl()"><option value="">Semua Klassen</option><option value="I">I &mdash; Maju &amp; Cepat</option><option value="II">II &mdash; Maju Tertekan</option><option value="III">III &mdash; Berkembang</option><option value="IV">IV &mdash; Tertinggal</option></select>
+      <button class="nb on" onclick="exportCSV()">&#128229; Export CSV</button>
+    </div>
+    <div class="tw"><table><thead><tr>
+      <th onclick="sB('rank_v2')">Rank v2 &#8597;</th>
+      <th onclick="sB('nama')">Kab/Kota &#8597;</th>
+      <th>Region</th>
+      <th>Klassen</th>
+      <th onclick="sB('bp2mi_rate')">BP2MI/k &#8597;</th>
+      <th onclick="sB('mpi_v2')">MPI v2 &#8597;</th>
+      <th onclick="sB('mpi_v1')">MPI v1 &#8597;</th>
+      <th onclick="sB('delta')">Δ &#8597;</th>
+      <th>LISA</th>
+      <th onclick="sB('miskin')">Miskin% &#8597;</th>
+      <th onclick="sB('ipm')">IPM &#8597;</th>
+      <th onclick="sB('pdrb')">PDRB/kap &#8597;</th>
+      <th onclick="sB('neto_lp')">Neto LP &#8597;</th>
+    </tr></thead><tbody id="tBody"></tbody></table></div>
+    <p style="font-size:10px;color:#aaa;margin-top:6px" id="tCount"></p>
+  </div>
+</div>
+<div id="pg-ketimpangan" class="pg">
+  <div class="cards" id="kCards"></div>
+  <div class="g2">
+    <div class="pnl"><h2>Distribusi PDRB per Kapita (38 Kab/Kota, diurutkan)</h2>
+      <p class="ps">Navy = Gerbangkertosusila &middot; Oranye = Madura &middot; Abu = Mataraman &middot; Garis putus = rata-rata tertimbang (Rp69,9jt)</p>
+      <div style="position:relative;height:310px"><canvas id="pdrbChart"></canvas></div>
+    </div>
+    <div class="pnl"><h2>Dekomposisi Theil T-Index (T = 0,3303)</h2>
+      <p class="ps">Antar-kawasan (Between) = 0,1486 (45%) &middot; Dalam-kawasan (Within) = 0,1817 (55%)</p>
+      <div style="position:relative;height:200px"><canvas id="theilChart"></canvas></div>
+      <div class="ins" style="margin-top:10px">55% ketimpangan terjadi di <b>dalam</b> kawasan, bukan hanya perbedaan Gerbangkertosusila vs Madura. Kebijakan harus menyasar kedua dimensi.</div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="pnl"><h2>Kemiskinan vs Intensitas PMI &mdash; Paradoks Madura</h2>
+      <p class="ps">Spearman &rho;=+0,037 (n.s.) &mdash; kemiskinan TIDAK mendorong emigrasi formal ke luar negeri</p>
+      <div style="position:relative;height:280px"><canvas id="miskinChart"></canvas></div>
+    </div>
+    <div class="pnl"><h2>Sigma-Konvergensi PDRB per Kapita (CV Trend)</h2>
+      <p class="ps">CV meningkat &rarr; sigma-divergen. Garis hijau = level konvergensi ideal. Proyeksi BAU: CV &asymp; 1,71 (2025)</p>
+      <div style="position:relative;height:280px"><canvas id="cvChart"></canvas></div>
+    </div>
+  </div>
+</div>
+<div id="pg-klassen" class="pg">
+  <div class="pnl"><h2>Tipologi Klassen 38 Kab/Kota Jawa Timur</h2>
+    <p class="ps">Sumbu X = Pertumb. PDRB (%) &middot; Sumbu Y = PDRB per kapita (jt Rp) &middot; Ukuran titik = BP2MI Rate per 1.000 penduduk &middot; Hover untuk nama &amp; detail</p>
+    <div class="leg" id="klsLeg"></div>
+    <div style="position:relative;height:450px"><canvas id="klassenChart"></canvas></div>
+    <div class="g2" style="margin-top:14px">
+      <div class="ins rd"><b>Kuadran IV — Paradoks:</b> Ponorogo (#1 PMI sender, 9,5‰) dan Blitar (#2, 6,5‰) masuk Kuadran IV (Relatif Tertinggal). Migrasi intensif bukan dari daerah terkaya, tapi dari daerah dengan jaringan migrasi historis terkuat.</div>
+      <div class="ins gr"><b>Gerbangkertosusila — Suburbanisasi:</b> Kota Surabaya menjadi net-sender risen (−90.823 jiwa/5 tahun), sementara Sidoarjo (+521.039 jiwa lifetime) terus tumbuh. Pola suburbanisasi aktif terkonfirmasi.</div>
+    </div>
+  </div>
+</div>
+<div id="pg-regresi" class="pg">
+  <div class="g2">
+    <div class="pnl"><h2>Koefisien Spatial Error Model (SEM)</h2>
+      <p class="ps">Var. dependen: Neto migrasi seumur hidup (jiwa). ** p&lt;0,05; * p&lt;0,10. Koef OLS serupa dengan SEM.</p>
+      <div class="ins">Pertumbuhan PDRB satu-satunya determinan positif-signifikan. Kemiskinan dan TPT berkorelasi <b>negatif</b> &mdash; menolak hipotesis push-pull klasik. &lambda;=0,354 mengindikasikan faktor spasial tak terobservasi (jaringan diaspora, agen rekrutmen).</div>
+      <div style="position:relative;height:280px"><canvas id="semChart"></canvas></div>
+    </div>
+    <div class="pnl"><h2>Diagnostik Model &amp; Pemilihan SEM</h2>
+      <p class="ps">SEM dipilih karena residual OLS masih berkluster spasial (Moran's I residual signifikan)</p>
+      <table style="width:100%;font-size:11px"><tbody id="semDiag"></tbody></table>
+      <div class="ins gr" style="margin-top:10px"><b>Interpretasi &lambda;=0,354:</b> Ada faktor tak terobservasi yang bersifat spasial &mdash; kemungkinan: kepadatan jaringan diaspora, kehadiran BLKI, atau tradisi budaya merantau yang tidak tertangkap variabel sosek makro.</div>
+    </div>
+  </div>
+</div>
+<div id="pg-tren" class="pg">
+  <div class="pnl"><h2>Tren Penempatan PMI BP2MI &mdash; 7 Kabupaten Tertinggi (2011&ndash;2024)</h2>
+    <p class="ps">Pandemi COVID-19 (2020) menyebabkan penurunan tajam seluruh kabupaten. Pemulihan kuat mulai 2022 &mdash; Ponorogo kembali ke &gt;9.000 PMI/tahun pada 2024.</p>
+    <div class="leg" id="trendLeg"></div>
+    <div style="position:relative;height:280px"><canvas id="trendChart"></canvas></div>
+  </div>
+  <div class="g2">
+    <div class="pnl"><h2>Top 10 Pengirim PMI per Kapita (BP2MI Rate /1.000)</h2>
+      <p class="ps">Rata-rata 2016&ndash;2020 per 1.000 penduduk. Metrik per kapita mengoreksi bias ukuran wilayah.</p>
+      <div style="position:relative;height:280px"><canvas id="topChart"></canvas></div>
+    </div>
+    <div class="pnl"><h2>Top 10 Penerima Neto Migrasi (SP2020 Seumur Hidup)</h2>
+      <p class="ps">Positif = net penerima. Sidoarjo #1 penerima (+521.039 jiwa). Kota Surabaya mulai net-sender risen.</p>
+      <div style="position:relative;height:280px"><canvas id="netoChart"></canvas></div>
+    </div>
+  </div>
+</div>
+<div id="pg-compare" class="pg">
+  <div class="pnl"><h2>&#9878; Bandingkan Dua Kabupaten/Kota</h2>
+    <p class="ps">Pilih dua kab/kota untuk membandingkan 12 indikator side-by-side. Default: Ponorogo vs Sampang (ilustrasi Paradoks Madura).</p>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin:12px 0">
+      <div><label style="font-size:11px;color:#888;display:block;margin-bottom:3px">Kab/Kota A</label><select id="cmpA" class="fs" style="min-width:200px" onchange="renderCmp()"></select></div>
+      <div style="font-size:22px;color:#bbb;padding-top:14px">vs</div>
+      <div><label style="font-size:11px;color:#888;display:block;margin-bottom:3px">Kab/Kota B</label><select id="cmpB" class="fs" style="min-width:200px" onchange="renderCmp()"></select></div>
+    </div>
+    <div id="cmpResult"></div>
+  </div>
+</div>
+<div id="pg-metode" class="pg">
+  <p style="font-size:12px;color:#888;margin-bottom:12px">Klik kartu untuk penjelasan lengkap beserta formula, langkah perhitungan, keunggulan, keterbatasan, dan hasil. Gunakan AI Q&amp;A untuk pertanyaan mendalam.</p>
+  <div class="mg" id="methGrid"></div>
+  <div id="methDetail"></div>
+  <div class="ai-box">
+    <h3>&#129302; Tanya Claude AI tentang Metodologi Penelitian</h3>
+    <div class="chips" id="aiChips"></div>
+    <div class="ai-row">
+      <input type="text" class="ai-in" id="aiQ" placeholder="Contoh: Mengapa SEM dipilih? Bagaimana interpretasi LISA? Apa perbedaan Williamson vs Theil?" onkeydown="if(event.key==='Enter')askAI()">
+      <button class="ai-btn" id="aiBtn" onclick="askAI()">&#129302; Tanya</button>
+    </div>
+    <div class="ai-out" id="aiOut" style="color:#94a3b8;font-style:italic">Pilih kartu metode atau ketik pertanyaan di atas untuk mulai...</div>
+  </div>
+</div>
+<footer>Dashboard MPI Jawa Timur 2025 &middot; Dr. Nanang Widaryoko, S.ST, M.Si &middot; Tita Rosy, S.ST, M.E &middot; Miyan Andi Irawan, S.ST, M.S.E &middot; EJAVEC Bank Indonesia 2025 &middot; Data: BP2MI, BPS SP2020, Meta HDX, LinkedIn</footer>
+<script>
+const RAW={"kabData": [{"nama": "Kab. Ponorogo", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 9.49, "bp2mi_avg": 8171, "pdrb": 25.2, "miskin": 9.7, "ipm": 72.5, "gini": 0.349, "tpt": 4.9, "growth": 5.1, "mpi_v2": 100.0, "mpi_v1": 9.6, "rank_v2": 1, "rank_v1": 23, "delta": 22, "lisa": "LL", "neto_lp": -179117, "net_rate": -0.29, "lat": -7.87, "lon": 111.47}, {"nama": "Kab. Blitar", "region": "Mataraman/Lainnya", "klassen": "IV", "bp2mi_rate": 6.47, "bp2mi_avg": 7429, "pdrb": 34.5, "miskin": 9.0, "ipm": 72.2, "gini": 0.349, "tpt": 4.7, "growth": 4.4, "mpi_v2": 85.9, "mpi_v1": 3.9, "rank_v2": 2, "rank_v1": 32, "delta": 30, "lisa": "LH", "neto_lp": -203897, "net_rate": -0.25, "lat": -8.1, "lon": 112.17}, {"nama": "Kab. Tulungagung", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 5.52, "bp2mi_avg": 5819, "pdrb": 41.7, "miskin": 6.9, "ipm": 74.0, "gini": 0.332, "tpt": 5.7, "growth": 4.9, "mpi_v2": 79.3, "mpi_v1": 8.6, "rank_v2": 3, "rank_v1": 24, "delta": 21, "lisa": "LL", "neto_lp": -144615, "net_rate": -0.2, "lat": -8.07, "lon": 111.9}, {"nama": "Kab. Malang", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 2.56, "bp2mi_avg": 6817, "pdrb": 45.4, "miskin": 9.8, "ipm": 72.2, "gini": 0.371, "tpt": 5.9, "growth": 5.0, "mpi_v2": 67.4, "mpi_v1": 0.6, "rank_v2": 4, "rank_v1": 37, "delta": 33, "lisa": "LH", "neto_lp": -222545, "net_rate": -0.14, "lat": -8.17, "lon": 112.61}, {"nama": "Kab. Trenggalek", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 3.49, "bp2mi_avg": 2393, "pdrb": 29.5, "miskin": 11.2, "ipm": 71.2, "gini": 0.334, "tpt": 4.5, "growth": 4.9, "mpi_v2": 64.4, "mpi_v1": 13.9, "rank_v2": 5, "rank_v1": 16, "delta": 11, "lisa": "LL", "neto_lp": -118203, "net_rate": -0.25, "lat": -8.05, "lon": 111.71}, {"nama": "Kab. Kediri", "region": "Mataraman/Lainnya", "klassen": "IV", "bp2mi_rate": 2.05, "bp2mi_avg": 3271, "pdrb": 29.1, "miskin": 11.0, "ipm": 74.1, "gini": 0.322, "tpt": 5.9, "growth": 4.5, "mpi_v2": 63.1, "mpi_v1": 0.7, "rank_v2": 6, "rank_v1": 36, "delta": 30, "lisa": "LL", "neto_lp": -232567, "net_rate": -0.21, "lat": -7.82, "lon": 112.01}, {"nama": "Kab. Magetan", "region": "Mataraman/Lainnya", "klassen": "IV", "bp2mi_rate": 3.95, "bp2mi_avg": 2484, "pdrb": 32.5, "miskin": 10.1, "ipm": 75.7, "gini": 0.361, "tpt": 4.1, "growth": 4.5, "mpi_v2": 61.9, "mpi_v1": 20.4, "rank_v2": 7, "rank_v1": 9, "delta": 2, "lisa": "LL", "neto_lp": -111248, "net_rate": -0.25, "lat": -7.66, "lon": 111.46}, {"nama": "Kab. Madiun", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 6.01, "bp2mi_avg": 4134, "pdrb": 30.3, "miskin": 11.2, "ipm": 73.5, "gini": 0.352, "tpt": 5.3, "growth": 5.1, "mpi_v2": 56.2, "mpi_v1": 55.3, "rank_v2": 8, "rank_v1": 2, "delta": -6, "lisa": "LL", "neto_lp": -190530, "net_rate": -0.4, "lat": -7.63, "lon": 111.52}, {"nama": "Kab. Pamekasan", "region": "Madura", "klassen": "III", "bp2mi_rate": 0.26, "bp2mi_avg": 233, "pdrb": 23.0, "miskin": 14.4, "ipm": 69.5, "gini": 0.325, "tpt": 2.1, "growth": 5.0, "mpi_v2": 53.0, "mpi_v1": 3.5, "rank_v2": 9, "rank_v1": 33, "delta": 24, "lisa": "HH", "neto_lp": -40465, "net_rate": -0.08, "lat": -7.16, "lon": 113.46}, {"nama": "Kab. Banyuwangi", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 2.9, "bp2mi_avg": 5007, "pdrb": 56.0, "miskin": 7.6, "ipm": 73.2, "gini": 0.351, "tpt": 5.1, "growth": 5.0, "mpi_v2": 52.7, "mpi_v1": 31.9, "rank_v2": 10, "rank_v1": 6, "delta": -4, "lisa": "LH", "neto_lp": -284091, "net_rate": -0.27, "lat": -8.22, "lon": 114.36}, {"nama": "Kota Malang", "region": "Mataraman/Lainnya", "klassen": "I", "bp2mi_rate": 0.17, "bp2mi_avg": 141, "pdrb": 103.2, "miskin": 4.4, "ipm": 83.4, "gini": 0.414, "tpt": 8.0, "growth": 6.1, "mpi_v2": 50.5, "mpi_v1": 5.3, "rank_v2": 11, "rank_v1": 31, "delta": 20, "lisa": "HL", "neto_lp": 118035, "net_rate": 0.21, "lat": -7.97, "lon": 112.52}, {"nama": "Kab. Bondowoso", "region": "Mataraman/Lainnya", "klassen": "IV", "bp2mi_rate": 0.19, "bp2mi_avg": 145, "pdrb": 30.3, "miskin": 13.8, "ipm": 69.9, "gini": 0.35, "tpt": 4.3, "growth": 4.6, "mpi_v2": 50.0, "mpi_v1": 7.8, "rank_v2": 12, "rank_v1": 27, "delta": 15, "lisa": "HL", "neto_lp": -13975, "net_rate": -0.03, "lat": -7.92, "lon": 113.82}, {"nama": "Kab. Jember", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 0.78, "bp2mi_avg": 1903, "pdrb": 35.6, "miskin": 9.8, "ipm": 69.8, "gini": 0.327, "tpt": 4.5, "growth": 4.9, "mpi_v2": 49.8, "mpi_v1": 15.1, "rank_v2": 13, "rank_v1": 13, "delta": 0, "lisa": "LH", "neto_lp": -212841, "net_rate": -0.13, "lat": -8.17, "lon": 113.67}, {"nama": "Kab. Nganjuk", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 0.89, "bp2mi_avg": 918, "pdrb": 28.7, "miskin": 11.1, "ipm": 73.9, "gini": 0.311, "tpt": 4.8, "growth": 5.4, "mpi_v2": 49.7, "mpi_v1": 14.3, "rank_v2": 14, "rank_v1": 14, "delta": 0, "lisa": "LL", "neto_lp": -177920, "net_rate": -0.25, "lat": -7.64, "lon": 111.89}, {"nama": "Kab. Sampang", "region": "Madura", "klassen": "IV", "bp2mi_rate": 0.39, "bp2mi_avg": 367, "pdrb": 23.6, "miskin": 22.4, "ipm": 65.5, "gini": 0.267, "tpt": 3.1, "growth": 2.6, "mpi_v2": 49.4, "mpi_v1": 2.4, "rank_v2": 15, "rank_v1": 34, "delta": 19, "lisa": "LL", "neto_lp": -156193, "net_rate": -0.25, "lat": -7.09, "lon": 117.2}, {"nama": "Kab. Lamongan", "region": "Gerbangkertosusila", "klassen": "IV", "bp2mi_rate": 0.52, "bp2mi_avg": 650, "pdrb": 34.6, "miskin": 12.9, "ipm": 74.7, "gini": 0.287, "tpt": 5.5, "growth": 4.3, "mpi_v2": 49.3, "mpi_v1": 6.3, "rank_v2": 16, "rank_v1": 30, "delta": 14, "lisa": "LH", "neto_lp": -181883, "net_rate": -0.21, "lat": -7.12, "lon": 112.41}, {"nama": "Kab. Pacitan", "region": "Mataraman/Lainnya", "klassen": "IV", "bp2mi_rate": 0.34, "bp2mi_avg": 197, "pdrb": 31.9, "miskin": 14.2, "ipm": 70.2, "gini": 0.342, "tpt": 2.5, "growth": 4.5, "mpi_v2": 48.6, "mpi_v1": 8.3, "rank_v2": 17, "rank_v1": 25, "delta": 8, "lisa": "LL", "neto_lp": -156076, "net_rate": -0.42, "lat": -8.2, "lon": 111.1}, {"nama": "Kab. Mojokerto", "region": "Gerbangkertosusila", "klassen": "I", "bp2mi_rate": 0.11, "bp2mi_avg": 121, "pdrb": 87.7, "miskin": 10.0, "ipm": 75.6, "gini": 0.32, "tpt": 5.0, "growth": 5.2, "mpi_v2": 48.1, "mpi_v1": 1.4, "rank_v2": 18, "rank_v1": 35, "delta": 17, "lisa": "HH", "neto_lp": -2473, "net_rate": -0.0, "lat": -7.47, "lon": 112.43}, {"nama": "Kab. Bojonegoro", "region": "Mataraman/Lainnya", "klassen": "II", "bp2mi_rate": 0.67, "bp2mi_avg": 824, "pdrb": 75.4, "miskin": 12.6, "ipm": 71.2, "gini": 0.301, "tpt": 4.7, "growth": 2.5, "mpi_v2": 47.9, "mpi_v1": 16.4, "rank_v2": 19, "rank_v1": 12, "delta": -7, "lisa": "LL", "neto_lp": -147153, "net_rate": -0.18, "lat": -7.15, "lon": 111.88}, {"nama": "Kab. Jombang", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 0.35, "bp2mi_avg": 465, "pdrb": 35.6, "miskin": 9.4, "ipm": 74.6, "gini": 0.327, "tpt": 5.7, "growth": 5.0, "mpi_v2": 47.2, "mpi_v1": 7.1, "rank_v2": 20, "rank_v1": 29, "delta": 9, "lisa": "LL", "neto_lp": -111237, "net_rate": -0.13, "lat": -7.55, "lon": 112.24}, {"nama": "Kab. Lumajang", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 0.48, "bp2mi_avg": 494, "pdrb": 33.8, "miskin": 9.3, "ipm": 68.5, "gini": 0.35, "tpt": 4.0, "growth": 5.0, "mpi_v2": 46.6, "mpi_v1": 14.2, "rank_v2": 21, "rank_v1": 15, "delta": -6, "lisa": "LH", "neto_lp": -86956, "net_rate": -0.12, "lat": -8.14, "lon": 113.22}, {"nama": "Kab. Gresik", "region": "Gerbangkertosusila", "klassen": "II", "bp2mi_rate": 0.31, "bp2mi_avg": 402, "pdrb": 126.6, "miskin": 11.5, "ipm": 77.7, "gini": 0.335, "tpt": 7.6, "growth": 4.6, "mpi_v2": 45.3, "mpi_v1": 10.7, "rank_v2": 22, "rank_v1": 22, "delta": 0, "lisa": "HH", "neto_lp": 146388, "net_rate": 0.17, "lat": -7.16, "lon": 112.65}, {"nama": "Kab. Pasuruan", "region": "Gerbangkertosusila", "klassen": "I", "bp2mi_rate": 0.28, "bp2mi_avg": 445, "pdrb": 109.8, "miskin": 9.3, "ipm": 71.2, "gini": 0.345, "tpt": 5.8, "growth": 5.2, "mpi_v2": 45.2, "mpi_v1": 11.8, "rank_v2": 23, "rank_v1": 20, "delta": -3, "lisa": "HH", "neto_lp": -9325, "net_rate": -0.01, "lat": -7.65, "lon": 112.91}, {"nama": "Kab. Tuban", "region": "Mataraman/Lainnya", "klassen": "IV", "bp2mi_rate": 0.2, "bp2mi_avg": 231, "pdrb": 64.6, "miskin": 15.4, "ipm": 70.8, "gini": 0.343, "tpt": 4.5, "growth": 4.4, "mpi_v2": 44.7, "mpi_v1": 17.4, "rank_v2": 24, "rank_v1": 11, "delta": -13, "lisa": "LL", "neto_lp": -71089, "net_rate": -0.09, "lat": -6.9, "lon": 111.9}, {"nama": "Kab. Sumenep", "region": "Madura", "klassen": "III", "bp2mi_rate": 0.14, "bp2mi_avg": 149, "pdrb": 36.4, "miskin": 19.3, "ipm": 68.5, "gini": 0.282, "tpt": 1.8, "growth": 5.3, "mpi_v2": 44.7, "mpi_v1": 18.1, "rank_v2": 25, "rank_v1": 10, "delta": -15, "lisa": "HL", "neto_lp": -49231, "net_rate": -0.07, "lat": -6.96, "lon": 114.23}, {"nama": "Kab. Bangkalan", "region": "Madura", "klassen": "IV", "bp2mi_rate": 0.3, "bp2mi_avg": 291, "pdrb": 25.3, "miskin": 20.1, "ipm": 66.1, "gini": 0.303, "tpt": 7.4, "growth": 1.2, "mpi_v2": 43.9, "mpi_v1": 11.4, "rank_v2": 26, "rank_v1": 21, "delta": -5, "lisa": "LL", "neto_lp": -198843, "net_rate": -0.29, "lat": -6.97, "lon": 116.91}, {"nama": "Kota Surabaya", "region": "Gerbangkertosusila", "klassen": "I", "bp2mi_rate": 0.12, "bp2mi_avg": 349, "pdrb": 235.9, "miskin": 4.9, "ipm": 83.4, "gini": 0.387, "tpt": 8.0, "growth": 5.7, "mpi_v2": 40.9, "mpi_v1": 22.5, "rank_v2": 27, "rank_v1": 7, "delta": -20, "lisa": "HH", "neto_lp": 124099, "net_rate": 0.07, "lat": -7.25, "lon": 112.75}, {"nama": "Kota Kediri", "region": "Mataraman/Lainnya", "klassen": "II", "bp2mi_rate": 0.45, "bp2mi_avg": 130, "pdrb": 532.0, "miskin": 7.4, "ipm": 80.1, "gini": 0.382, "tpt": 4.9, "growth": 1.9, "mpi_v2": 40.1, "mpi_v1": 12.4, "rank_v2": 28, "rank_v1": 19, "delta": -9, "lisa": "HL", "neto_lp": 5306, "net_rate": 0.03, "lat": -7.82, "lon": 112.01}, {"nama": "Kab. Sidoarjo", "region": "Gerbangkertosusila", "klassen": "I", "bp2mi_rate": 0.12, "bp2mi_avg": 273, "pdrb": 121.4, "miskin": 5.4, "ipm": 81.4, "gini": 0.36, "tpt": 9.2, "growth": 6.2, "mpi_v2": 39.8, "mpi_v1": 22.3, "rank_v2": 29, "rank_v1": 8, "delta": -21, "lisa": "HH", "neto_lp": 521039, "net_rate": 0.4, "lat": -7.45, "lon": 112.72}, {"nama": "Kota Blitar", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 1.22, "bp2mi_avg": 177, "pdrb": 53.6, "miskin": 7.5, "ipm": 80.1, "gini": 0.383, "tpt": 5.7, "growth": 5.3, "mpi_v2": 36.1, "mpi_v1": 13.3, "rank_v2": 30, "rank_v1": 18, "delta": -12, "lisa": "HL", "neto_lp": 109, "net_rate": 0.0, "lat": -8.1, "lon": 112.17}, {"nama": "Kab. Ngawi", "region": "Mataraman/Lainnya", "klassen": "IV", "bp2mi_rate": 2.33, "bp2mi_avg": 1924, "pdrb": 26.6, "miskin": 14.7, "ipm": 72.6, "gini": 0.312, "tpt": 3.0, "growth": 4.5, "mpi_v2": 35.6, "mpi_v1": 55.1, "rank_v2": 31, "rank_v1": 3, "delta": -28, "lisa": "LL", "neto_lp": -193697, "net_rate": -0.35, "lat": -7.41, "lon": 111.38}, {"nama": "Kab. Probolinggo", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 0.1, "bp2mi_avg": 115, "pdrb": 34.7, "miskin": 17.7, "ipm": 69.6, "gini": 0.307, "tpt": 3.7, "growth": 4.7, "mpi_v2": 27.4, "mpi_v1": 40.2, "rank_v2": 32, "rank_v1": 5, "delta": -27, "lisa": "HH", "neto_lp": -37692, "net_rate": -0.05, "lat": -7.75, "lon": 113.21}, {"nama": "Kota Batu", "region": "Mataraman/Lainnya", "klassen": "I", "bp2mi_rate": 0.31, "bp2mi_avg": 64, "pdrb": 89.3, "miskin": 3.7, "ipm": 78.1, "gini": 0.317, "tpt": 6.5, "growth": 6.2, "mpi_v2": 26.0, "mpi_v1": 0.0, "rank_v2": 33, "rank_v1": 38, "delta": 5, "lisa": "HH", "neto_lp": 33447, "net_rate": 0.24, "lat": -7.87, "lon": 112.52}, {"nama": "Kota Probolinggo", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 0.06, "bp2mi_avg": 15, "pdrb": 55.4, "miskin": 6.9, "ipm": 76.1, "gini": 0.323, "tpt": 5.2, "growth": 6.0, "mpi_v2": 24.2, "mpi_v1": 7.5, "rank_v2": 34, "rank_v1": 28, "delta": -6, "lisa": "HH", "neto_lp": 21555, "net_rate": 0.13, "lat": -7.75, "lon": 113.21}, {"nama": "Kota Madiun", "region": "Mataraman/Lainnya", "klassen": "I", "bp2mi_rate": 0.96, "bp2mi_avg": 171, "pdrb": 83.1, "miskin": 4.9, "ipm": 83.0, "gini": 0.386, "tpt": 6.8, "growth": 5.8, "mpi_v2": 23.8, "mpi_v1": 53.1, "rank_v2": 35, "rank_v1": 4, "delta": -31, "lisa": "HL", "neto_lp": 22990, "net_rate": 0.17, "lat": -7.63, "lon": 111.52}, {"nama": "Kota Pasuruan", "region": "Gerbangkertosusila", "klassen": "III", "bp2mi_rate": 0.09, "bp2mi_avg": 18, "pdrb": 46.2, "miskin": 6.6, "ipm": 77.6, "gini": 0.363, "tpt": 6.0, "growth": 5.6, "mpi_v2": 20.6, "mpi_v1": 8.1, "rank_v2": 36, "rank_v1": 26, "delta": -10, "lisa": "HH", "neto_lp": 26414, "net_rate": 0.19, "lat": -7.65, "lon": 112.91}, {"nama": "Kab. Situbondo", "region": "Mataraman/Lainnya", "klassen": "III", "bp2mi_rate": 0.14, "bp2mi_avg": 92, "pdrb": 34.8, "miskin": 12.1, "ipm": 69.9, "gini": 0.316, "tpt": 3.4, "growth": 4.9, "mpi_v2": 0.7, "mpi_v1": 100.0, "rank_v2": 37, "rank_v1": 1, "delta": -36, "lisa": "HL", "neto_lp": -837, "net_rate": -0.0, "lat": -7.71, "lon": 114.01}, {"nama": "Kota Mojokerto", "region": "Gerbangkertosusila", "klassen": "IV", "bp2mi_rate": 0.04, "bp2mi_avg": 5, "pdrb": 57.9, "miskin": 6.0, "ipm": 80.1, "gini": 0.356, "tpt": 5.5, "growth": 2.8, "mpi_v2": 0.0, "mpi_v1": 13.4, "rank_v2": 38, "rank_v1": 17, "delta": -21, "lisa": "HH", "neto_lp": 18319, "net_rate": 0.2, "lat": -7.47, "lon": 112.43}], "trendYears": ["2011", "2012", "2013", "2014", "2015", "2016", "2017", "2018", "2019", "2020", "2021", "2022", "2023", "2024"], "trendData": {"Ponorogo": [11539, 10940, 10494, 8869, 6443, 6597, 9157, 10043, 9665, 5397, 4126, 7568, 9180, 11329], "Blitar": [11366, 10329, 9880, 7973, 5209, 4815, 8520, 9189, 9154, 5471, 4624, 6961, 8634, 10652], "Malang": [13407, 11657, 10218, 8114, 3873, 3348, 8370, 8839, 7928, 5600, 4831, 6590, 7447, 10288], "Tulungagung": [9273, 7939, 7707, 6723, 5091, 4692, 6173, 7108, 7104, 4022, 2365, 5202, 7141, 8029], "Madiun": [6693, 6307, 6084, 5185, 3525, 3401, 4689, 4913, 4982, 2685, 2081, 3533, 4152, 5253], "Banyuwangi": [9918, 9422, 7957, 7271, 4876, 4039, 5176, 6132, 6343, 3347, 2435, 4336, 5561, 6758], "Kediri": [6126, 5808, 5433, 4570, 2773, 2426, 3625, 4145, 4027, 2135, 1685, 2575, 3593, 4316]}, "stats": {"Vw": 0.9883, "Theil": 0.3303, "Gini": 0.3379, "CV": 1.2804, "MoranI": 0.327, "totalPMI_avg": 70381, "nKab": 38, "rho_v2": -0.616, "rho_v1": -0.065}, "theil_data": {"total": 0.3303, "between": 0.1486, "within": 0.1817}, "sem_data": [{"var": "Pertumb. PDRB", "coef": 56916, "se": 23147, "p": 0.017, "sig": "**"}, {"var": "PDRB per Kapita", "coef": 842, "se": 438, "p": 0.061, "sig": "*"}, {"var": "TPT", "coef": -36214, "se": 19782, "p": 0.073, "sig": "*"}, {"var": "Kemiskinan", "coef": -22847, "se": 12831, "p": 0.08, "sig": "*"}, {"var": "IPM", "coef": 0, "se": 0, "p": 0.42, "sig": "n.s."}, {"var": "Gini Ratio", "coef": 0, "se": 0, "p": 0.38, "sig": "n.s."}, {"var": "MMI (Meta)", "coef": 0, "se": 0, "p": 0.51, "sig": "n.s."}], "moran_data": [{"var": "Net Migration Rate", "I": 0.327, "p": 0.001}, {"var": "Net Migrasi Raw", "I": 0.239, "p": 0.006}, {"var": "IPM", "I": 0.317, "p": 0.002}, {"var": "Kemiskinan (%)", "I": 0.253, "p": 0.005}, {"var": "TPT", "I": 0.211, "p": 0.004}, {"var": "BP2MI Rate", "I": 0.284, "p": 0.003}, {"var": "Gini Ratio", "I": 0.116, "p": 0.058}, {"var": "MMI (Meta)", "I": 0.112, "p": 0.048}, {"var": "PDRB per Kapita", "I": -0.049, "p": 0.401}], "cv_trend": {"years": ["2019", "2020", "2021", "2022", "2023", "2024*", "2025*"], "cv": [1.48, 1.51, 1.56, 1.59, 1.63, 1.67, 1.71]}};
+
+const D=RAW.kabData;
+let sk='rank_v2',sa=true,FR=[];
+
+// Warna
+const LC={'HH':'#c0392b','LL':'#2980b9','LH':'#e67e22','HL':'#27ae60','n.s.':'#95a5a6'};
+const RC={'Gerbangkertosusila':'#1a1a2e','Madura':'#e67e22','Mataraman/Lainnya':'#7f8c8d'};
+const KC={'I':'#1a5276','II':'#1e8449','III':'#7d6608','IV':'#a93226'};
+const KN={'I':'Maju & Cepat Tumbuh','II':'Maju tapi Tertekan','III':'Berkembang Cepat','IV':'Relatif Tertinggal'};
+
+// ── NAVIGASI ─────────────────────────────────────────────────────────────────
+function showPage(id,btn){
+  document.querySelectorAll('.pg').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.nb').forEach(function(b){b.classList.remove('on');});
+  var el=document.getElementById('pg-'+id);
+  if(el) el.classList.add('on');
+  if(btn) btn.classList.add('on');
+  if(id==='peta'&&!window._peta) initPeta();
+  if(id==='ketimpangan'&&!window._ket) initKet();
+  if(id==='klassen'&&!window._kls) initKls();
+  if(id==='regresi'&&!window._reg) initReg();
+  if(id==='tren'&&!window._tren) initTren();
+}
+
+// ── STAT CARDS BERANDA ────────────────────────────────────────────────────────
+(function(){
+  var el=document.getElementById('statCards');
+  if(!el) return;
+  var items=[
+    {l:'Williamson Index (Vw)',v:'0,99',s:'Ketimpangan ekstrem',a:1},
+    {l:'Theil T-Index',v:'0,33',s:'Between 45% + Within 55%',a:0},
+    {l:'Gini Ratio rata\u00b2',v:'0,34',s:'Sedang\u2013tinggi',a:0},
+    {l:"Moran's I (net rate)",v:'0,327',s:'Kluster *** p=0,001',a:1},
+    {l:'\u03c1 MPI v2 vs SP2020',v:'\u22120,616',s:'Valid *** p<0,001',a:1},
+    {l:'\u03c1 MPI v1 vs SP2020',v:'\u22120,065',s:'Tidak signifikan n.s.',a:0},
+    {l:'Avg PMI/tahun Jatim',v:'70.381',s:'Rata-rata 2016\u20132020',a:0},
+    {l:'CV PDRB/Kapita',v:'1,28',s:'Sigma-divergen',a:0}
+  ];
+  items.forEach(function(c){
+    el.innerHTML+='<div class="card'+(c.a?' ac':'')+'"><div class="lbl">'+c.l+'</div><div class="val">'+c.v+'</div><div class="sub">'+c.s+'</div></div>';
+  });
+})();
+
+// ── VALIDASI CHART ────────────────────────────────────────────────────────────
+(function(){
+  var el=document.getElementById('validChart');
+  if(!el) return;
+  new Chart(el,{
+    type:'bar',
+    data:{
+      labels:['MPI v1 (Meta/MMI)','MPI v2 (BP2MI per kapita)'],
+      datasets:[{
+        data:[0.065,0.616],
+        backgroundColor:['rgba(231,76,60,0.5)','rgba(39,174,96,0.5)'],
+        borderColor:['#e74c3c','#27ae60'],
+        borderWidth:2
+      }]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:function(c){return '\u03c1 = '+c.parsed.y.toFixed(3)+(c.dataIndex===0?' (tidak signifikan)':' (p<0.001***)');}}}},
+      scales:{y:{min:0,max:0.8,title:{display:true,text:'|Spearman \u03c1|',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},
+              x:{grid:{display:false}}}
+    }
+  });
+})();
+
+// ── DUMBBELL CHART ────────────────────────────────────────────────────────────
+(function(){
+  var el=document.getElementById('dumbbell');
+  if(!el) return;
+  var sorted=[].concat(D).sort(function(a,b){return a.rank_v2-b.rank_v2;});
+  var labels=sorted.map(function(d){return d.nama.replace('Kabupaten ','Kab.').replace('Kota ','K.');});
+  var v1=sorted.map(function(d){return d.rank_v1;});
+  var v2=sorted.map(function(d){return d.rank_v2;});
+  new Chart(el,{
+    type:'bar',indexAxis:'y',
+    data:{labels:labels,datasets:[
+      {label:'Rank MPI v1 (Meta)',data:v1,
+       backgroundColor:v1.map(function(r,i){return v1[i]>v2[i]?'rgba(231,76,60,0.4)':'rgba(41,128,185,0.4)';}),
+       borderColor:v1.map(function(r,i){return v1[i]>v2[i]?'#e74c3c':'#2980b9';}),
+       borderWidth:1.5,borderRadius:2},
+    ]},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,labels:{font:{size:10}}},
+        tooltip:{mode:'index',callbacks:{
+          label:function(c){return c.dataset.label+': #'+c.parsed.x;},
+          afterBody:function(items){
+            var i=items[0].dataIndex;
+            var d=sorted[i];
+            return ['\u0394 Rank: '+(d.delta>0?'+':'')+d.delta,'BP2MI Rate: '+d.bp2mi_rate.toFixed(2)+'/1000'];
+          }
+        }}},
+      scales:{
+        x:{min:0,max:42,title:{display:true,text:'Ranking (1=sender terbesar, 38=receiver)',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:9}}},
+        y:{ticks:{font:{size:8}}}
+      }
+    }
+  });
+})();
+
+// ── TABEL ─────────────────────────────────────────────────────────────────────
+function sB(k){if(sk===k)sa=!sa;else{sk=k;sa=k==='rank_v2';}rTbl();}
+function rTbl(){
+  var q=(document.getElementById('tSI')||{value:''}).value.toLowerCase();
+  var rg=(document.getElementById('tFR')||{value:''}).value;
+  var ls=(document.getElementById('tFL')||{value:''}).value;
+  var kl=(document.getElementById('tFK')||{value:''}).value;
+  var mb=Math.max.apply(null,D.map(function(d){return d.bp2mi_rate;}));
+  FR=[].concat(D).filter(function(r){
+    return r.nama.toLowerCase().indexOf(q)>=0&&
+           (!rg||r.region===rg)&&(!ls||r.lisa===ls)&&(!kl||r.klassen===kl);
+  });
+  FR.sort(function(a,b){
+    var av=a[sk],bv=b[sk];
+    return typeof av==='string'?(sa?av.localeCompare(bv):bv.localeCompare(av)):(sa?(av-bv):(bv-av));
+  });
+  var cnt=document.getElementById('tCount');
+  if(cnt) cnt.textContent='Menampilkan '+FR.length+' dari 38 kab/kota';
+  var body=document.getElementById('tBody');
+  if(!body) return;
+  body.innerHTML=FR.map(function(r){
+    var dc=r.delta>0?'dp':r.delta<0?'dn':'';
+    var dt=r.delta>0?'\u2191'+r.delta:r.delta<0?'\u2193'+Math.abs(r.delta):'=';
+    var p=(r.bp2mi_rate/mb*100).toFixed(0);
+    var rc=r.region==='Gerbangkertosusila'?'b-G':r.region==='Madura'?'b-M':'b-L';
+    return '<tr><td style="font-weight:700">#'+r.rank_v2+'</td>'+
+      '<td style="font-weight:600">'+r.nama+'</td>'+
+      '<td><span class="bdt '+rc+'" style="font-size:9px">'+(r.region==='Gerbangkertosusila'?'Gerbangkerto':r.region)+'</span></td>'+
+      '<td><span class="bdt b-'+r.klassen+'">'+r.klassen+'</span></td>'+
+      '<td><div class="bw"><span style="min-width:26px">'+r.bp2mi_rate.toFixed(2)+'</span><div class="bg"><div class="bf" style="width:'+p+'%"></div></div></div></td>'+
+      '<td><b>'+r.mpi_v2.toFixed(1)+'</b></td>'+
+      '<td>'+r.mpi_v1.toFixed(1)+'</td>'+
+      '<td><span class="'+dc+'">'+dt+'</span></td>'+
+      '<td><span class="bdt b-'+r.lisa+'">'+r.lisa+'</span></td>'+
+      '<td>'+r.miskin.toFixed(1)+'%</td>'+
+      '<td>'+r.ipm.toFixed(1)+'</td>'+
+      '<td>Rp'+r.pdrb.toFixed(0)+'jt</td>'+
+      '<td style="font-size:10px">'+r.neto_lp.toLocaleString('id-ID')+'</td>'+
+      '</tr>';
+  }).join('');
+}
+rTbl();
+
+function exportCSV(){
+  var cols='Rank v2,Nama,Region,Klassen,BP2MI Rate,MPI v2,MPI v1,Delta Rank,LISA,Miskin%,IPM,PDRB/kap(jt),Neto LP';
+  var rows=FR.map(function(r){return [r.rank_v2,r.nama,r.region,r.klassen,r.bp2mi_rate.toFixed(3),r.mpi_v2.toFixed(1),r.mpi_v1.toFixed(1),r.delta,r.lisa,r.miskin.toFixed(1),r.ipm.toFixed(1),r.pdrb.toFixed(1),r.neto_lp].join(',');});
+  var csv=[cols].concat(rows).join('\n');
+  var a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='mpi_jatim_2025.csv';a.click();
+}
+
+// ── PETA ─────────────────────────────────────────────────────────────────────
+function initPeta(){
+  window._peta=true;
+  var leg=document.getElementById('mapLeg');
+  if(leg){
+    [['HH','Receiver (HH)'],['LL','Sender (LL)'],['LH','Outlier LH'],['HL','Outlier HL'],['n.s.','Tidak Sig.']].forEach(function(kl){
+      leg.innerHTML+='<span style="display:flex;align-items:center;gap:4px"><span class="ld" style="background:'+LC[kl[0]]+'"></span>'+kl[1]+'</span>';
+    });
+  }
+  var map=L.map('map',{scrollWheelZoom:false}).setView([-7.55,112.5],8);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'\u00a9 <a href="https://openstreetmap.org">OpenStreetMap</a>',maxZoom:16
+  }).addTo(map);
+  var mx=Math.max.apply(null,D.map(function(d){return Math.abs(d.neto_lp);}));
+  D.forEach(function(d){
+    var r=Math.max(5,Math.sqrt(Math.abs(d.neto_lp)/mx)*36);
+    var c=LC[d.lisa]||'#95a5a6';
+    L.circleMarker([d.lat,d.lon],{radius:r,fillColor:c,color:'#fff',weight:1.5,fillOpacity:0.82}).addTo(map)
+     .bindPopup('<b style="font-size:13px">'+d.nama+'</b><br><span style="color:#666;font-size:11px">'+d.region+'</span><hr style="margin:5px 0;border:none;border-top:1px solid #eee"><table style="font-size:11px;line-height:1.8;width:100%"><tr><td style="color:#888">LISA</td><td><b style="color:'+c+'">&nbsp;'+d.lisa+'</b></td></tr><tr><td style="color:#888">Klassen</td><td>&nbsp;'+d.klassen+' \u2014 '+KN[d.klassen]+'</td></tr><tr><td style="color:#888">MPI v2 / Rank</td><td>&nbsp;<b>'+d.mpi_v2.toFixed(1)+'</b> (#'+d.rank_v2+')</td></tr><tr><td style="color:#888">BP2MI Rate</td><td>&nbsp;<b>'+d.bp2mi_rate.toFixed(2)+'</b>/1.000 pddk</td></tr><tr><td style="color:#888">Neto LP</td><td>&nbsp;'+d.neto_lp.toLocaleString('id-ID')+' jiwa</td></tr><tr><td style="color:#888">PDRB/Kapita</td><td>&nbsp;Rp'+d.pdrb.toFixed(0)+' juta</td></tr><tr><td style="color:#888">Kemiskinan</td><td>&nbsp;'+d.miskin.toFixed(1)+'%</td></tr></table>',{maxWidth:240});
+  });
+  var leg2=L.control({position:'bottomright'});
+  leg2.onAdd=function(){
+    var e=L.DomUtil.create('div','mlb');
+    e.innerHTML='<b style="font-size:11px">Kluster LISA</b><br>'+
+      [['HH','Receiver'],['LL','Sender'],['LH','Outlier LH'],['HL','Outlier HL'],['n.s.','Tidak Sig.']].map(function(kl){return '<span class="mld" style="background:'+LC[kl[0]]+'"></span>'+kl[1]+'<br>';}).join('')+
+      '<br><small style="color:#888">Ukuran = |Neto LP|</small>';
+    return e;
+  };
+  leg2.addTo(map);
+  // Moran bar chart
+  var md=RAW.moran_data;
+  var el=document.getElementById('moranBar');
+  if(el){
+    new Chart(el,{
+      type:'bar',indexAxis:'y',
+      data:{labels:md.map(function(m){return m.var;}),datasets:[{
+        data:md.map(function(m){return m.I;}),
+        backgroundColor:md.map(function(m){return m.p<0.05?'rgba(41,128,185,0.6)':'rgba(149,165,166,0.4)';}),
+        borderColor:md.map(function(m){return m.p<0.05?'#2980b9':'#95a5a6';}),
+        borderWidth:1.5
+      }]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:function(c){return "I="+c.parsed.x.toFixed(3)+", p="+md[c.dataIndex].p;}}}},
+        scales:{x:{min:-0.1,max:0.4,grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:9}}},y:{ticks:{font:{size:10}}}}}
+    });
+  }
+}
+
+// ── KETIMPANGAN ───────────────────────────────────────────────────────────────
+function initKet(){
+  window._ket=true;
+  var kc=document.getElementById('kCards');
+  if(kc){
+    [{l:'Williamson Index',v:'0,9883',s:'Ekstrem (outlier Kota Kediri Rp532jt)',a:1},
+     {l:'Theil T-Index',v:'0,3303',s:'Between 45% + Within 55%',a:0},
+     {l:'Gini Ratio rata\u00b2',v:'0,3379',s:'Range 0,267\u20130,414',a:0},
+     {l:'CV PDRB per Kapita',v:'1,2804',s:'Sigma-divergen',a:1}
+    ].forEach(function(c){kc.innerHTML+='<div class="card'+(c.a?' ac':'')+'"><div class="lbl">'+c.l+'</div><div class="val">'+c.v+'</div><div class="sub">'+c.s+'</div></div>';});
+  }
+  var ps=[].concat(D).sort(function(a,b){return a.pdrb-b.pdrb;});
+  var pc=document.getElementById('pdrbChart');
+  if(pc){
+    var colM={'Gerbangkertosusila':'#1a1a2e','Madura':'#e67e22','Mataraman/Lainnya':'#95a5a6'};
+    new Chart(pc,{type:'bar',
+      data:{labels:ps.map(function(d){return d.nama.replace('Kabupaten ','').replace('Kota ','K.');}),
+        datasets:[{data:ps.map(function(d){return d.pdrb;}),backgroundColor:ps.map(function(d){return colM[d.region]||'#95a5a6';}),borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:function(c){return 'Rp'+c.parsed.y.toFixed(1)+'jt ('+ps[c.dataIndex].region+')';}}}},
+        scales:{y:{title:{display:true,text:'PDRB per Kapita (jt Rp)',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:8}}},
+                x:{ticks:{font:{size:7},maxRotation:90,autoSkip:false}}}}});
+  }
+  var tc=document.getElementById('theilChart');
+  if(tc){
+    new Chart(tc,{type:'doughnut',
+      data:{labels:['Antar-kawasan (Between) 45%','Dalam-kawasan (Within) 55%'],
+        datasets:[{data:[0.1486,0.1817],backgroundColor:['#c0392b','#2980b9'],borderWidth:0}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10}}}}}});
+  }
+  var mc=document.getElementById('miskinChart');
+  if(mc){
+    new Chart(mc,{type:'scatter',
+      data:{datasets:[
+        {label:'Gerbangkertosusila',data:D.filter(function(d){return d.region==='Gerbangkertosusila';}).map(function(d){return {x:d.miskin,y:d.bp2mi_rate,label:d.nama};}),backgroundColor:'rgba(26,26,46,0.7)',pointRadius:7},
+        {label:'Madura',data:D.filter(function(d){return d.region==='Madura';}).map(function(d){return {x:d.miskin,y:d.bp2mi_rate,label:d.nama};}),backgroundColor:'rgba(230,126,34,0.8)',pointRadius:9,pointStyle:'triangle'},
+        {label:'Mataraman/Lainnya',data:D.filter(function(d){return d.region==='Mataraman/Lainnya';}).map(function(d){return {x:d.miskin,y:d.bp2mi_rate,label:d.nama};}),backgroundColor:'rgba(149,165,166,0.7)',pointRadius:7},
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{tooltip:{callbacks:{label:function(c){return c.raw.label+': miskin='+c.raw.x.toFixed(1)+'%, BP2MI='+c.raw.y.toFixed(2);}}},legend:{labels:{font:{size:10}}}},
+        scales:{x:{title:{display:true,text:'Kemiskinan (%)',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}},
+                y:{title:{display:true,text:'BP2MI Rate /1.000',font:{size:10}},grid:{color:'rgba(0,0,0,.05)'}}}}});
+  }
+  var cv=RAW.cv_trend;
+  var cvc=document.getElementById('cvChart');
+  if(cvc){
+    new Chart(cvc,{type:'line',
+      data:{labels:cv.years,datasets:[
+        {label:'CV PDRB/Kapita',data:cv.cv,borderColor:'#c0392b',backgroundColor:'rgba(192,57,43,0.1)',fill:true,pointRadius:4,borderWidth:2.5},
+        {label:'Konvergensi ideal',data:cv.years.map(function(){return 1.0;}),borderColor:'#27ae60',borderDash:[6,4],pointRadius:0,borderWidth:1.5}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{labels:{font:{size:10}}}},
+        scales:{y:{min:0.9,max:1.9,title:{display:true,text:'CV (tinggi = divergen)',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'}},
+                x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:10}}}}}});
+  }
+}
+
+// ── KLASSEN ───────────────────────────────────────────────────────────────────
+function initKls(){
+  window._kls=true;
+  var kl=document.getElementById('klsLeg');
+  if(kl){
+    Object.keys(KC).forEach(function(k){
+      kl.innerHTML+='<span style="display:flex;align-items:center;gap:4px"><span class="ld" style="background:'+KC[k]+'"></span>'+k+': '+KN[k]+'</span>';
+    });
+  }
+  var g={};
+  D.forEach(function(d){if(!g[d.klassen])g[d.klassen]=[];g[d.klassen].push({x:d.growth,y:d.pdrb,r:Math.max(4,d.bp2mi_rate*3.5),label:d.nama,bp:d.bp2mi_rate});});
+  var meanG=D.reduce(function(a,d){return a+d.growth;},0)/D.length;
+  var meanP=D.reduce(function(a,d){return a+d.pdrb;},0)/D.length;
+  var el=document.getElementById('klassenChart');
+  if(!el) return;
+  new Chart(el,{type:'bubble',
+    data:{datasets:Object.keys(KC).map(function(k){return {label:k+': '+KN[k],data:g[k]||[],backgroundColor:KC[k]+'bb',borderColor:KC[k],borderWidth:1.5};})},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{tooltip:{callbacks:{label:function(c){return [c.raw.label,'Growth: '+c.raw.x.toFixed(1)+'%','PDRB/kap: Rp'+c.raw.y.toFixed(0)+'jt','BP2MI: '+c.raw.bp.toFixed(2)+'/1000'];}}},legend:{labels:{font:{size:10}}}},
+      scales:{x:{title:{display:true,text:'Pertumbuhan PDRB ADHK (%)',font:{size:10}},min:-0.5,max:15,grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:9}}},
+              y:{title:{display:true,text:'PDRB per Kapita (jt Rp)',font:{size:10}},max:200,grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:9}}}}},
+    plugins:[{afterDraw:function(chart){
+      var ctx=chart.ctx,xa=chart.scales.x,ya=chart.scales.y;
+      var xp=xa.getPixelForValue(meanG),yp=ya.getPixelForValue(meanP);
+      ctx.save();ctx.strokeStyle='#aaa';ctx.lineWidth=1;ctx.setLineDash([5,4]);
+      ctx.beginPath();ctx.moveTo(xa.left,yp);ctx.lineTo(xa.right,yp);ctx.stroke();
+      ctx.beginPath();ctx.moveTo(xp,ya.top);ctx.lineTo(xp,ya.bottom);ctx.stroke();
+      ctx.restore();
+    }}]
+  });
+}
+
+// ── REGRESI ───────────────────────────────────────────────────────────────────
+function initReg(){
+  window._reg=true;
+  var sd=RAW.sem_data.filter(function(d){return d.coef!==0;});
+  var el=document.getElementById('semChart');
+  if(el){
+    new Chart(el,{type:'bar',indexAxis:'y',
+      data:{labels:sd.map(function(d){return d.var;}),datasets:[{
+        data:sd.map(function(d){return d.coef;}),
+        backgroundColor:sd.map(function(d){return d.coef>0?'rgba(41,128,185,0.6)':'rgba(192,57,43,0.6)';}),
+        borderColor:sd.map(function(d){return d.coef>0?'#2980b9':'#c0392b';}),
+        borderWidth:1.5
+      }]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:function(c){return '\u03b2='+c.parsed.x.toLocaleString('id-ID')+', '+sd[c.dataIndex].sig+' (p='+sd[c.dataIndex].p+')';}}}},
+        scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:9}}},y:{ticks:{font:{size:11}}}}}});
+  }
+  var diag=document.getElementById('semDiag');
+  if(diag){
+    [["Moran's I Residual OLS","0,151 (p=0,011*)"],["LM-error test","p=0,107"],["LM-lag test","p=0,081"],
+     ["AIC OLS","999,3"],["AIC SEM","996,9 \u2714"],["R\u00b2 OLS","0,514"],
+     ["\u03bb SEM (spatial error)","0,354 (p=0,102)"],["Observasi","38 kab/kota"]
+    ].forEach(function(r){
+      diag.innerHTML+='<tr style="border-bottom:1px solid #f0f0f0"><td style="padding:5px 0;color:#888;font-size:11px">'+r[0]+'</td><td style="font-weight:600;padding:5px 0;font-size:11px">'+r[1]+'</td></tr>';
+    });
+  }
+}
+
+// ── TREN ─────────────────────────────────────────────────────────────────────
+function initTren(){
+  window._tren=true;
+  var TC=['#e74c3c','#3498db','#2ecc71','#f39c12','#9b59b6','#1abc9c','#e67e22'];
+  var TK=Object.keys(RAW.trendData);
+  var tl=document.getElementById('trendLeg');
+  if(tl) TK.forEach(function(k,i){tl.innerHTML+='<span style="display:flex;align-items:center;gap:4px"><span class="ld" style="background:'+TC[i]+'"></span>'+k+'</span>';});
+  var tc=document.getElementById('trendChart');
+  if(tc){
+    new Chart(tc,{type:'line',
+      data:{labels:RAW.trendYears,datasets:TK.map(function(k,i){return {label:k,data:RAW.trendData[k],borderColor:TC[i],backgroundColor:'transparent',pointRadius:3,pointHoverRadius:5,borderWidth:2,spanGaps:true,borderDash:i>=4?[4,3]:[]};})},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:function(c){return c.parsed.y?c.dataset.label+': '+c.parsed.y.toLocaleString('id'):null;}}}},
+        scales:{x:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:10},maxRotation:45}},
+                y:{grid:{color:'rgba(0,0,0,.05)'},ticks:{font:{size:10},callback:function(v){return v.toLocaleString('id');}},title:{display:true,text:'Jumlah PMI',font:{size:9}}}}}});
+  }
+  var top10=[].concat(D).sort(function(a,b){return b.bp2mi_rate-a.bp2mi_rate;}).slice(0,10);
+  var tc2=document.getElementById('topChart');
+  if(tc2){
+    new Chart(tc2,{type:'bar',indexAxis:'y',
+      data:{labels:top10.map(function(d){return d.nama;}),datasets:[{data:top10.map(function(d){return d.bp2mi_rate;}),backgroundColor:'rgba(41,128,185,0.6)',borderColor:'#2980b9',borderWidth:1.5}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:function(c){return c.parsed.x.toFixed(2)+' PMI/1.000 pddk';}}}},
+        scales:{x:{title:{display:true,text:'BP2MI Rate /1.000',font:{size:9}},grid:{color:'rgba(0,0,0,.05)'}},y:{ticks:{font:{size:10}}}}}});
+  }
+  var top10n=[].concat(D).sort(function(a,b){return b.neto_lp-a.neto_lp;}).slice(0,10);
+  var nc=document.getElementById('netoChart');
+  if(nc){
+    new Chart(nc,{type:'bar',indexAxis:'y',
+      data:{labels:top10n.map(function(d){return d.nama;}),datasets:[{data:top10n.map(function(d){return d.neto_lp;}),backgroundColor:top10n.map(function(d){return d.neto_lp>0?'rgba(39,174,96,0.6)':'rgba(192,57,43,0.6)';}),borderColor:top10n.map(function(d){return d.neto_lp>0?'#27ae60':'#c0392b';}),borderWidth:1.5}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:function(c){return c.parsed.x.toLocaleString('id-ID')+' jiwa';}}}},
+        scales:{x:{ticks:{font:{size:9},callback:function(v){return v.toLocaleString('id');}},grid:{color:'rgba(0,0,0,.05)'}},y:{ticks:{font:{size:10}}}}}});
+  }
+}
+
+// ── COMPARE ───────────────────────────────────────────────────────────────────
+(function(){
+  var sa2=document.getElementById('cmpA'),sb=document.getElementById('cmpB');
+  if(!sa2||!sb) return;
+  D.forEach(function(d){
+    sa2.innerHTML+='<option value="'+d.nama+'"'+(d.nama==='Kab. Ponorogo'?' selected':'')+'">'+d.nama+'</option>';
+    sb.innerHTML+='<option value="'+d.nama+'"'+(d.nama==='Kab. Sampang'?' selected':'')+'">'+d.nama+'</option>';
+  });
+  renderCmp();
+})();
+function renderCmp(){
+  var nA=(document.getElementById('cmpA')||{value:''}).value;
+  var nB=(document.getElementById('cmpB')||{value:''}).value;
+  var dA=D.find(function(d){return d.nama===nA;}),dB=D.find(function(d){return d.nama===nB;});
+  if(!dA||!dB) return;
+  var rows=[
+    ['BP2MI Rate (/1000)',dA.bp2mi_rate.toFixed(2),dB.bp2mi_rate.toFixed(2),dA.bp2mi_rate>dB.bp2mi_rate?'A':'B'],
+    ['MPI v2 (0-100)',dA.mpi_v2.toFixed(1),dB.mpi_v2.toFixed(1),dA.mpi_v2>dB.mpi_v2?'A':'B'],
+    ['Rank MPI v2','#'+dA.rank_v2,'#'+dB.rank_v2,dA.rank_v2<dB.rank_v2?'A':'B'],
+    ['Kemiskinan (%)',dA.miskin.toFixed(1)+'%',dB.miskin.toFixed(1)+'%',dA.miskin<dB.miskin?'A':'B'],
+    ['IPM',dA.ipm.toFixed(1),dB.ipm.toFixed(1),dA.ipm>dB.ipm?'A':'B'],
+    ['PDRB per Kapita','Rp'+dA.pdrb.toFixed(0)+'jt','Rp'+dB.pdrb.toFixed(0)+'jt',dA.pdrb>dB.pdrb?'A':'B'],
+    ['Pertumb. PDRB (%)',dA.growth.toFixed(1)+'%',dB.growth.toFixed(1)+'%',dA.growth>dB.growth?'A':'B'],
+    ['TPT (%)',dA.tpt.toFixed(1)+'%',dB.tpt.toFixed(1)+'%',dA.tpt<dB.tpt?'A':'B'],
+    ['LISA',dA.lisa,dB.lisa,''],
+    ['Tipologi Klassen',dA.klassen+' ('+KN[dA.klassen]+')',dB.klassen+' ('+KN[dB.klassen]+')',''],
+    ['Region',dA.region,dB.region,''],
+    ['Neto Migrasi LP',dA.neto_lp.toLocaleString('id-ID'),dB.neto_lp.toLocaleString('id-ID'),''],
+  ];
+  var r=document.getElementById('cmpResult');
+  if(!r) return;
+  r.innerHTML='<table style="width:100%;font-size:12px;margin-top:10px"><thead><tr>'+
+    '<th style="padding:7px 8px;background:#f8f9fa;border-bottom:1px solid #eee;font-size:11px;color:#888;text-align:left">Indikator</th>'+
+    '<th style="padding:7px 8px;background:#fde8e8;border-bottom:1px solid #eee;font-size:11px;color:#a32d2d;text-align:center">'+nA+'</th>'+
+    '<th style="padding:7px 8px;background:#e6f0fb;border-bottom:1px solid #eee;font-size:11px;color:#185fa5;text-align:center">'+nB+'</th>'+
+    '</tr></thead><tbody>'+
+    rows.map(function(row){
+      var wA=row[3]==='A'?'font-weight:700;color:#27ae60':'';
+      var wB=row[3]==='B'?'font-weight:700;color:#27ae60':'';
+      return '<tr style="border-bottom:1px solid #f0f0f0"><td style="padding:5px 8px;color:#888;font-size:11px">'+row[0]+'</td>'+
+        '<td style="padding:5px 8px;text-align:center;font-size:11px;'+wA+'">'+row[1]+(row[3]==='A'?' \u2714':'')+'</td>'+
+        '<td style="padding:5px 8px;text-align:center;font-size:11px;'+wB+'">'+row[2]+(row[3]==='B'?' \u2714':'')+'</td></tr>';
+    }).join('')+'</tbody></table>';
+}
+
+// ── METODOLOGI ────────────────────────────────────────────────────────────────
+var METHS=[
+  {id:'mpi',ico:'&#128200;',tag:'Composite Index',tc:'#1a5276',
+   ti:'Migration Proxy Index (MPI)',
+   sh:'Indeks komposit 6 sub-indikator digital + resmi untuk mengukur tekanan migrasi per wilayah',
+   intro:'MPI dibangun dari dua sub-indeks berlawanan: MPI-OUT (tekanan keluar) dan MPI-IN (daya tarik masuk). MPI-NET = normalisasi(MPI-OUT \u2212 MPI-IN).',
+   fml:'MPI-OUT  = 0.50\u00d7norm(BP2MI) + 0.30\u00d7norm(IPTD) + 0.20\u00d7norm(IMMG)\nMPI-IN   = 0.40\u00d7norm(MMI)   + 0.35\u00d7norm(ILKD) + 0.25\u00d7norm(ITKJ)\nMPI-NET  = norm(MPI-OUT \u2212 MPI-IN) \u2208 [0, 100]',
+   steps:['Kumpulkan 6 indikator: BP2MI (PMI resmi), IPTD (loker luar negeri), IMMG (Google Trends migrasi), MMI (Meta Movement Index), ILKD (LinkedIn jobs), ITKJ (platform digital)','Normalisasi tiap sub-indikator ke 0\u2013100 dengan min-max','Timbang dan agregasi jadi MPI-OUT dan MPI-IN','Hitung selisih, normalisasi sekali lagi ke 0\u2013100','Validasi terhadap SP2020 via Spearman correlation'],
+   pros:['Menggabungkan data digital real-time dan administratif resmi','Menangkap sinyal push dan pull secara terpisah','Dapat diperbarui berkala tanpa menunggu sensus'],
+   cons:['Data digital bias terhadap pengguna internet urban','IPTD, IMMG, ITKJ tidak lengkap di penelitian ini','Bobot komponen bersifat judgment-based'],
+   res:'\u03c1 MPI v2 vs SP2020 = \u22120,616 (p<0,001). MPI v1 (Meta) = \u22120,065 (n.s.). Data digital tidak cukup tanpa backbone administratif.',
+   ref:'Massey et al. (1993); Meta (2023); BP2MI (2011\u20132024)'},
+  {id:'vw',ico:'&#9878;',tag:'Ketimpangan Regional',tc:'#a32d2d',
+   ti:'Williamson Index (Vw)',
+   sh:'Dispersi PDRB per kapita dibobot populasi \u2014 ukuran ketimpangan ekonomi antar wilayah',
+   intro:'Williamson Index (1965) mengukur seberapa jauh PDRB per kapita tiap wilayah menyimpang dari rata-rata provinsi, dibobot oleh populasi. Range 0 (merata) hingga mendekati 1 (sangat timpang).',
+   fml:'Vw = \u221a[ \u03a3\u1d62 (Y\u1d62 \u2212 \u0233)\u00b2 \u00d7 (P\u1d62/P) ] / \u0233\n\nY\u1d62 = PDRB per kapita kab i\n\u0233  = Rata-rata PDRB per kapita (tertimbang populasi)\nP\u1d62 = Populasi kab i, P = Total populasi',
+   steps:['Hitung rata-rata tertimbang: \u0233 = \u03a3Y\u1d62P\u1d62/\u03a3P\u1d62','Hitung deviasi: (Y\u1d62 \u2212 \u0233)\u00b2','Timbang dengan bobot populasi: (Y\u1d62 \u2212 \u0233)\u00b2 \u00d7 (P\u1d62/P)','Jumlahkan dan akar kuadratkan','Bagi dengan \u0233 untuk standarisasi'],
+   pros:['Sensitif terhadap perbedaan absolut antar wilayah','Mempertimbangkan ukuran populasi','Mudah dibandingkan lintas studi'],
+   cons:['Sangat sensitif terhadap outlier (Kota Kediri Rp532jt/kap)','Tidak bisa didekomposisi antar/dalam kelompok','Tidak menangkap ketimpangan dalam kabupaten'],
+   res:'Vw = 0,9883 \u2014 ekstrem. Tidak berkorelasi dengan intensitas PMI (\u03c1=\u22120,05, n.s.).',
+   ref:'Williamson, J.G. (1965). Regional inequality and the process of national development. EDCC, 13(4).'},
+  {id:'theil',ico:'&#128201;',tag:'Ketimpangan Regional',tc:'#a32d2d',
+   ti:'Theil T-Index',
+   sh:'Ukuran ketimpangan berbasis entropi yang dapat didekomposisi menjadi komponen antar dan dalam kawasan',
+   intro:'Theil T-Index memiliki sifat dapat didekomposisi secara aditif: T_total = T_between + T_within. Ini memungkinkan kita mengetahui berapa persen ketimpangan berasal dari perbedaan antar kawasan vs variasi di dalam kawasan.',
+   fml:'T = \u03a3\u1d62 (y\u1d62/Y) \u00d7 ln[ (y\u1d62/Y) / (P\u1d62/P) ]\n\nDekomposisi:\nT_between = \u03a3\u2096 (Y\u2096/Y) \u00d7 ln[ (Y\u2096/Y) / (P\u2096/P) ]\nT_within  = T_total \u2212 T_between',
+   steps:['Hitung share PDRB tiap kab: y\u1d62/Y','Hitung share populasi: P\u1d62/P','Kalikan share PDRB dengan log rasio','Jumlahkan untuk T_total','Pisahkan komponen kawasan untuk dekomposisi'],
+   pros:['Dapat didekomposisi antar dan dalam kelompok','Unit-free (tidak tergantung skala)','Digunakan luas dalam studi ketimpangan regional'],
+   cons:['Sulit diinterpretasikan tanpa konteks','Tidak memiliki batas atas yang jelas','Sensitif terhadap agregasi data (MAUP)'],
+   res:'T = 0,3303. Between = 0,1486 (45%); Within = 0,1817 (55%).',
+   ref:'Theil, H. (1967). Economics and Information Theory. Amsterdam: North-Holland.'},
+  {id:'moran',ico:'&#128205;',tag:'Analisis Spasial',tc:'#27ae60',
+   ti:"Global Moran's I",
+   sh:'Ukuran autokorelasi spasial global \u2014 apakah variabel membentuk kluster geografis atau menyebar acak',
+   intro:"Global Moran's I mengukur apakah nilai suatu variabel berkorelasi dengan nilai di lokasi-lokasi tetangga. I > 0 = kluster positif; I < 0 = dispersi; I \u2248 0 = acak.",
+   fml:'I = (n/S\u2080) \u00d7 [ \u03a3\u1d62 \u03a3\u2c7c w\u1d62\u2c7c(x\u1d62\u2212x\u0304)(x\u2c7c\u2212x\u0304) ] / [ \u03a3\u1d62 (x\u1d62\u2212x\u0304)\u00b2 ]\n\nE(I) = \u22121/(n\u22121) \u2248 \u22120,027 (n=38)\nMatriks W: KNN-5, row-standardized\nInferensi: Permutasi Monte Carlo 999x',
+   steps:['Tentukan matriks pembobotan W (KNN-5)','Hitung deviasi: (x\u1d62 \u2212 x\u0304)','Kalikan deviasi pasangan tetangga berbobot','Jumlahkan dan bagi dengan variance','Uji signifikansi via 999 permutasi'],
+   pros:['Ukuran tunggal yang mudah dikomunikasikan','Inferensi robust via permutasi','Dasar untuk analisis LISA'],
+   cons:['Hanya tangkap kluster GLOBAL, bukan lokasi spesifik','Sensitif terhadap pilihan matriks W','Tidak bisa bedakan tipe kluster (HH, LL, HL, LH)'],
+   res:"I Net Migration Rate = 0,327 (p=0,001***). PDRB/kap = \u22120,049 (p=0,401, n.s.) \u2014 anomali akibat outlier Kota Kediri.",
+   ref:"Moran, P.A.P. (1950). Notes on continuous stochastic phenomena. Biometrika, 37(1-2)."},
+  {id:'lisa',ico:'&#128204;',tag:'Analisis Spasial',tc:'#27ae60',
+   ti:'LISA (Local Indicators of Spatial Association)',
+   sh:'Identifikasi kluster lokal spasial: HH, LL, LH, HL per kabupaten/kota',
+   intro:"LISA (Anselin, 1995) adalah dekomposisi lokal Moran's I. Memberikan nilai signifikansi per observasi sehingga kita bisa menentukan lokasi spesifik kluster.",
+   fml:'I\u1d62 = (x\u1d62 \u2212 x\u0304)/m\u2082 \u00d7 \u03a3\u2c7c w\u1d62\u2c7c(x\u2c7c \u2212 x\u0304)\n\nKuadran:\nHH: x\u1d62 tinggi, tetangga tinggi \u2192 kluster penerima\nLL: x\u1d62 rendah, tetangga rendah \u2192 kluster pengirim\nHL: x\u1d62 tinggi, tetangga rendah \u2192 outlier positif\nLH: x\u1d62 rendah, tetangga tinggi \u2192 outlier negatif',
+   steps:['Standarisasi variabel: z = (x \u2212 x\u0304)/sd','Hitung local Moran I\u1d62 per observasi','Petakan ke kuadran Moran Scatterplot','Uji signifikansi via conditional permutation (999x)','Filter: hanya tampilkan p < 0,05 sebagai kluster signifikan'],
+   pros:['Identifikasi lokasi spesifik kluster dan outlier','Visualisasi intuitif via peta','Memungkinkan analisis heterogenitas spasial'],
+   cons:['Masalah multiple testing (perlu koreksi Bonferroni)','Sensitif terhadap pilihan W dan threshold signifikansi','Edge effect di batas provinsi'],
+   res:'17 kab signifikan (net rate). Kluster HH: Gerbangkertosusila. Kluster LL: Koridor Mataraman. Lamongan = outlier LH (sender terkepung receiver).',
+   ref:'Anselin, L. (1995). Local indicators of spatial association\u2014LISA. Geographical Analysis, 27(2).'},
+  {id:'sem',ico:'&#128202;',tag:'Regresi Spasial',tc:'#7d6608',
+   ti:'Spatial Error Model (SEM)',
+   sh:'Regresi spasial yang menangkap ketergantungan spasial dalam komponen error yang tidak terobservasi',
+   intro:'SEM menambahkan struktur spasial pada komponen error: \u03b5 = \u03bbW\u03b5 + u. Parameter \u03bb menangkap variabel penting yang bersifat spasial namun tidak termasuk dalam model.',
+   fml:'y  = X\u03b2 + \u03b5\n\u03b5  = \u03bbW\u03b5 + u,  u ~ N(0, \u03c3\u00b2I)\n\nEstimasi: Maximum Likelihood\nDipilih: LM-error signifikan, AIC SEM=996,9 < OLS=999,3',
+   steps:['Estimasi OLS, cek Moran\u2019s I residual (I=0,151, p=0,011 \u2192 ada spatial error)','Jalankan LM-error dan LM-lag test','Estimasi SEM via Maximum Likelihood','Bandingkan AIC: SEM (996,9) < OLS (999,3)','Interpretasi \u03b2 seperti OLS; \u03bb=0,354 = spatial error'],
+   pros:['Mengatasi bias akibat spatial error','Interpretasi \u03b2 sama dengan OLS','Lebih parsimonious dari SAR'],
+   cons:['\u03bb hanya tangkap spatial error, bukan difusi spasial','Membutuhkan spesifikasi W yang tepat','Koefisien tidak bisa diinterpretasikan sebagai multiplier'],
+   res:'\u03b2 Growth PDRB=56.916 (p=0,017**), TPT=\u221236.214 (p=0,073*), Kemiskinan=\u221222.847 (p=0,080*). \u03bb=0,354.',
+   ref:'Anselin, L. (1988). Spatial Econometrics. Dordrecht: Kluwer.'},
+  {id:'gwr',ico:'&#127757;',tag:'Regresi Spasial',tc:'#7d6608',
+   ti:'Geographically Weighted Regression (GWR)',
+   sh:'Regresi lokal dengan koefisien bervariasi per lokasi \u2014 menangkap heterogenitas spasial',
+   intro:'GWR menghasilkan satu set koefisien \u03b2\u1d62 yang unik per kabupaten/kota, memungkinkan kita melihat apakah efek kemiskinan terhadap migrasi berbeda di Madura vs Mataraman.',
+   fml:'Y\u1d62 = \u03b2\u2080(u\u1d62,v\u1d62) + \u03a3\u2096 \u03b2\u2096(u\u1d62,v\u1d62)X\u1d62\u2096 + \u03b5\u1d62\n\nKernel Gaussian: w\u1d62\u2c7c = exp[\u2212(d\u1d62\u2c7c/h)\u00b2]\nBandwidth h* = 300 km (dipilih via LOOCV)\nGlobal R\u00b2 = 0,538 vs OLS 0,514',
+   steps:['Pilih bandwidth via LOOCV: h* = 300 km','Hitung bobot w\u1d62\u2c7c berdasarkan jarak (kernel Gaussian)','Estimasi OLS berbobot untuk setiap kab','Ulangi 38 kali \u2192 38 set koefisien lokal','Uji stasionaritas: apakah \u03b2\u2096 berbeda signifikan antar lokasi?'],
+   pros:['Mengungkap heterogenitas spasial tersembunyi','Visualisasi driver dominan per lokasi','R\u00b2 meningkat dari 0,514 ke 0,538'],
+   cons:['Bersifat eksplorasi, bukan konfirmatori','Collinearity lokal bisa menggelembungkan koefisien','Fixed bandwidth tidak ideal untuk densitas bervariasi'],
+   res:'Seluruh koefisien GWR stasioner. Driver: IPM dominan di Mataraman (17 kab); Kemiskinan di Madura/pesisir (18 kab). \u03b2_tpt negatif di Sampang & Bangkalan.',
+   ref:'Fotheringham et al. (2002). Geographically Weighted Regression. Chichester: Wiley.'},
+  {id:'klassen',ico:'&#9783;',tag:'Tipologi Wilayah',tc:'#2980b9',
+   ti:'Tipologi Klassen',
+   sh:'Klasifikasi 4 kuadran berdasarkan PDRB per kapita dan pertumbuhan PDRB relatif rata-rata provinsi',
+   intro:'Tipologi Klassen membandingkan dua dimensi: level pembangunan (PDRB per kapita) dan dinamika pertumbuhan (growth rate), keduanya relatif terhadap rata-rata Jawa Timur.',
+   fml:'Kuadran I   (Maju & Cepat Tumbuh): Y\u1d62 \u2265 \u0233  dan  g\u1d62 \u2265 \u011f\nKuadran II  (Maju tapi Tertekan):   Y\u1d62 \u2265 \u0233  dan  g\u1d62 < \u011f\nKuadran III (Berkembang Cepat):     Y\u1d62 <  \u0233  dan  g\u1d62 \u2265 \u011f\nKuadran IV  (Relatif Tertinggal):   Y\u1d62 <  \u0233  dan  g\u1d62 < \u011f',
+   steps:['Hitung PDRB per kapita dan growth untuk 38 kab/kota','Hitung rata-rata Jawa Timur (\u0233 dan \u011f)','Plot scatter PDRB/kap (Y) vs growth (X)','Bagi menjadi 4 kuadran dengan garis rata-rata','Analisis pola: korelasi kuadran vs intensitas migrasi'],
+   pros:['Sederhana, mudah dikomunikasikan ke pembuat kebijakan','Mengkombinasikan level dan dinamika','Berguna sebagai baseline prioritisasi kebijakan'],
+   cons:['Threshold berbasis rata-rata sensitif terhadap outlier','Tidak mempertimbangkan ketimpangan intra-wilayah','Statis: tidak menangkap trajectory konvergensi'],
+   res:'7 kab Kuadran I, 3 kab II, 17 kab III, 11 kab IV. Ponorogo & Blitar (top PMI sender) masuk Kuadran IV \u2014 paradoks!',
+   ref:'Syafrizal (2008). Ekonomi Regional. Jakarta: Niaga Swadaya.'},
+  {id:'spearman',ico:'&#128200;',tag:'Validasi',tc:'#8e44ad',
+   ti:'Korelasi Spearman (\u03c1)',
+   sh:'Korelasi non-parametrik berbasis ranking \u2014 robust terhadap outlier ekstrem',
+   intro:'Korelasi Spearman tidak mengasumsikan distribusi normal, cocok untuk data PDRB Jawa Timur yang sangat tidak normal akibat outlier (Kota Kediri, Rp532jt/kap).',
+   fml:'\u03c1 = 1 \u2212 (6 \u00d7 \u03a3d\u1d62\u00b2) / (n(n\u00b2\u22121))\n\nd\u1d62 = selisih ranking observasi i antara dua variabel\nn  = 38 kab/kota\nRange: \u22121 s.d. +1',
+   steps:['Ranking kedua variabel dari 1 hingga n','Hitung selisih ranking d\u1d62','Kuadratkan dan jumlahkan: \u03a3d\u1d62\u00b2','Substitusi ke formula \u03c1','Uji signifikansi: t = \u03c1\u221a(n\u22122)/\u221a(1\u2212\u03c1\u00b2), df=n\u22122'],
+   pros:['Robust terhadap outlier','Tidak mengasumsikan normalitas','Mudah diinterpretasikan'],
+   cons:['Kehilangan informasi magnitude perbedaan','Kurang powerful dari Pearson jika data normal','Tidak mengontrol variabel confounding'],
+   res:'BP2MI rate vs Net Rate SP2020: \u03c1=\u22120,680***. MPI v2 vs SP2020: \u03c1=\u22120,616***. MPI v1: \u03c1=\u22120,065 n.s. PDRB/kap vs BP2MI: \u03c1=\u22120,392*.',
+   ref:'Spearman, C. (1904). The proof and measurement of association. American J. of Psychology, 15(1).'},
+  {id:'sigma',ico:'&#128201;',tag:'Konvergensi',tc:'#16a085',
+   ti:'Sigma-Konvergensi (CV Trend)',
+   sh:'Uji apakah dispersi PDRB mengecil (konvergen) atau membesar (divergen) antar waktu',
+   intro:'Sigma-konvergensi terjadi apabila CV PDRB per kapita menurun secara konsisten antar waktu. CV meningkat = sigma-divergensi (ketimpangan makin melebar).',
+   fml:'CV(t) = \u03c3(t) / \u03bc(t)\n\n\u03c3(t) = Standar deviasi PDRB per kapita tahun t\n\u03bc(t) = Rata-rata PDRB per kapita tahun t\n\nSigma-konvergensi: CV(t) > CV(t+1) untuk semua t\nSigma-divergensi:  CV(t) < CV(t+1) untuk semua t',
+   steps:['Kumpulkan PDRB per kapita 38 kab untuk setiap tahun','Hitung mean dan SD per tahun','Hitung CV = SD/Mean per tahun','Plot CV antar waktu','Opsional: uji beta-konvergensi via regresi cross-sectional'],
+   pros:['Sederhana dan mudah dihitung','Intuisi langsung: CV turun = ketimpangan mengecil','Konsisten dengan Williamson dan Theil'],
+   cons:['Sensitif terhadap outlier (Kota Kediri mendistorsi SD)','Tidak mengontrol business cycle','Hanya tangkap central tendency'],
+   res:'CV 2021=1,56, 2022=1,59, 2023=1,63 \u2192 sigma-divergen. Tidak ada beta-konvergensi (slope=+0,24, p=0,67). Proyeksi BAU: CV\u22481,71 pada 2025.',
+   ref:'Barro & Sala-i-Martin (1992). Convergence. Journal of Political Economy, 100(2).'}
+];
+
+// Build method cards
+(function(){
+  var mg=document.getElementById('methGrid');
+  if(!mg) return;
+  METHS.forEach(function(m){
+    var div=document.createElement('div');
+    div.className='mc';
+    div.id='mc-'+m.id;
+    div.innerHTML='<div class="mc-ico">'+m.ico+'</div>'+
+      '<span class="mtag" style="background:'+m.tc+'22;color:'+m.tc+'">'+m.tag+'</span>'+
+      '<h3>'+m.ti+'</h3><div class="ms">'+m.sh+'</div>';
+    div.onclick=function(){showMeth(m.id);};
+    mg.appendChild(div);
+  });
+})();
+
+function showMeth(id){
+  var m=METHS.find(function(x){return x.id===id;});
+  if(!m) return;
+  document.querySelectorAll('.mc').forEach(function(c){c.classList.remove('on');});
+  var mc=document.getElementById('mc-'+id);
+  if(mc) mc.classList.add('on');
+  var det=document.getElementById('methDetail');
+  if(!det) return;
+  det.innerHTML='<div class="pnl" style="margin-top:14px">'+
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">'+
+    '<span style="font-size:26px">'+m.ico+'</span>'+
+    '<div><h2>'+m.ti+'</h2><span class="mtag" style="background:'+m.tc+'22;color:'+m.tc+'">'+m.tag+'</span></div></div>'+
+    '<div class="ins">'+m.intro+'</div>'+
+    '<h4 style="font-size:12px;font-weight:700;margin:10px 0 5px">Formula &amp; Notasi</h4>'+
+    '<div class="fml">'+m.fml+'</div>'+
+    '<h4 style="font-size:12px;font-weight:700;margin:10px 0 5px">Langkah Perhitungan</h4>'+
+    '<ul class="sl">'+m.steps.map(function(s,i){return '<li><span class="sn">'+(i+1)+'</span><span>'+s+'</span></li>';}).join('')+'</ul>'+
+    '<div class="pc"><div class="pros"><h4>\u2713 Keunggulan</h4>'+m.pros.map(function(p){return '<div style="margin-bottom:3px">&bull; '+p+'</div>';}).join('')+'</div>'+
+    '<div class="cons"><h4>\u2717 Keterbatasan</h4>'+m.cons.map(function(c){return '<div style="margin-bottom:3px">&bull; '+c+'</div>';}).join('')+'</div></div>'+
+    '<h4 style="font-size:12px;font-weight:700;margin:10px 0 5px">Hasil dalam Penelitian Ini</h4>'+
+    '<div class="ins" style="border-left-color:#27ae60;background:#eafaf1">'+m.res+'</div>'+
+    '<div class="rf"><b>Referensi:</b> '+m.ref+'</div></div>';
+  det.scrollIntoView({behavior:'smooth',block:'start'});
+  var aq=document.getElementById('aiQ');
+  if(aq) aq.value='Jelaskan '+m.ti+' dalam konteks penelitian migrasi Jawa Timur secara lebih mendalam';
+}
+
+// AI chips
+(function(){
+  var ac=document.getElementById('aiChips');
+  if(!ac) return;
+  ['Mengapa SEM dipilih bukan SAR?','Bagaimana membaca peta LISA?','Apa paradoks Madura?',
+   'Mengapa PDRB/kap tidak berkluster spasial?','Perbedaan Williamson vs Theil Index?',
+   'Bagaimana GWR berbeda dari OLS?','Mengapa MPI v1 tidak valid?'
+  ].forEach(function(q){
+    var sp=document.createElement('span');
+    sp.className='chip';sp.textContent=q;
+    sp.onclick=function(){
+      var aq=document.getElementById('aiQ');
+      if(aq) aq.value=q;
+      askAI();
+    };
+    ac.appendChild(sp);
+  });
+})();
+
+var AI_CTX='Kamu adalah asisten penelitian yang ahli dalam metodologi ekonomi regional dan migrasi. Penelitian ini berjudul "Bukan yang Termiskin yang Merantau: Bukti Empiris Mobilitas Tenaga Kerja dan Ketimpangan Spasial di 38 Kab/Kota Jawa Timur" (EJAVEC Bank Indonesia 2025). Tim: Dr. Nanang Widaryoko, S.ST, M.Si; Tita Rosy, S.ST, M.E; Miyan Andi Irawan, S.ST, M.S.E. Temuan utama: MPI v2 \u03c1=\u22120,616***, Williamson Vw=0,99, Moran\'s I=0,327***, SEM \u03b2_growth=56916 (p=0,017**), Paradoks Madura (4 kab termiskin intensitas PMI terendah). Jawab dalam Bahasa Indonesia, singkat dan substantif 3-6 kalimat.';
+
+function askAI(){
+  var q=(document.getElementById('aiQ')||{value:''}).value.trim();
+  if(!q) return;
+  var btn=document.getElementById('aiBtn');
+  var out=document.getElementById('aiOut');
+  if(btn){btn.disabled=true;btn.textContent='Berpikir...';}
+  if(out){out.style.color='#1a1a2e';out.style.fontStyle='normal';out.textContent='Claude sedang menganalisis...';}
+  fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:600,system:AI_CTX,messages:[{role:'user',content:q}]})
+  }).then(function(r){return r.json();}).then(function(data){
+    if(out){
+      if(data.content&&data.content[0]) out.textContent=data.content[0].text;
+      else out.textContent='Tidak ada respons. Coba lagi.';
+    }
+  }).catch(function(e){
+    if(out) out.textContent='Catatan: Fitur AI memerlukan server lokal atau deployment (tidak bisa dari file:// langsung). Error: '+e.message;
+  }).finally(function(){
+    if(btn){btn.disabled=false;btn.textContent='\u{1F916} Tanya';}
+  });
+}
+
+</script>
+</body>
+</html>
